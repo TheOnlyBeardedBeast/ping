@@ -51,11 +51,11 @@ bool DirectionSmoother::smoothDirection(int input)
 
 int DirectionSmoother::getCurrentDirection()
 {
-    this->currentDirection = -1;
     return this->currentDirection;
 }
 
 void DirectionSmoother::clear()
 {
+    this->currentDirection = -1;
     this->inputHistory.clear();
 }

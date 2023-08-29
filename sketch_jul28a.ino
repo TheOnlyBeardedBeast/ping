@@ -1,14 +1,12 @@
 #include "PaddleController.h"
 
 PaddleController paddleL = PaddleController();
+AccelStepper steppe;
 
 void setup()
 {
-  if (Serial.available())
-  {
-    Serial.begin(9600);
-    Serial.println("Arduino DUE - PING");
-  }
+  Serial.begin(9600);
+  Serial.println("Arduino DUE - PING");
 
   paddleL.initializeEncoder(52, 53);
   paddleL.initializeMotor(2, 3);
