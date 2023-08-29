@@ -12,11 +12,11 @@ Each paddle is controlled with a nema17 motor, and a rotary encoder sets the spe
 
 ## Parts
 
-4 x Nema17 Stepper motor
-2 x E38S6G5-600B-G24N Rotary encoder
-1 x CNC shield V3.0
-1 x Arduino due (probably will upgrade to Giga)
-1 X 24V 5A PSU (120W)
+- 4 x Nema17 Stepper motor
+- 2 x E38S6G5-600B-G24N Rotary encoder
+- 1 x CNC shield V3.0
+- 1 x Arduino due (probably will upgrade to Giga)
+- 1 X 24V 5A PSU (120W)
 
 ## Progress
 
