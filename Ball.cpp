@@ -3,6 +3,8 @@
 
 void Ball::run()
 {
+    this->_stepperA->run();
+    this->_stepperB->run();
 }
 
 void Ball::setposition(int x, int y)
