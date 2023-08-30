@@ -1,11 +1,10 @@
 #include "PaddleController.h"
+#include "utils.h"
+
 #define CLAMP(value, minValue, maxValue) ((value) < (minValue) ? (minValue) : ((value) > (maxValue) ? (maxValue) : (value)))
 
 #define ENCODER_RESOLUTION 2400
 #define SAMPLING_TIME 100
-#define SPEED 1000
-#define ACCELERATION 10 * SPEED
-#define CALIBRATION_SPEED 200
 
 PaddleController::PaddleController()
 {
