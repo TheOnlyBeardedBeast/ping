@@ -1,4 +1,4 @@
-#include "PaddleController.h"
+#include "Paddle.h"
 #include "utils.h"
 
 #define CLAMP(value, minValue, maxValue) ((value) < (minValue) ? (minValue) : ((value) > (maxValue) ? (maxValue) : (value)))
@@ -6,7 +6,7 @@
 #define ENCODER_RESOLUTION 2400
 #define SAMPLING_TIME 100
 
-PaddleController::PaddleController()
+Paddle::Paddle()
 {
     this->direction = CW;
     this->_pulseCount = 0;
@@ -16,7 +16,7 @@ PaddleController::PaddleController()
     this->smoother = DirectionSmoother(10);
 }
 
-void PaddleController::initializeEncoder(byte A, byte B)
+void Paddle::initializeEncoder(byte A, byte B)
 {
     this->_pinA = A;
     // this->_registerA = digitalPinToPort(A)->PIO_PDSR;
@@ -30,7 +30,7 @@ void PaddleController::initializeEncoder(byte A, byte B)
     pinMode(B, INPUT_PULLUP);
 }
 
-void PaddleController::initializeStepper(byte STEP, byte DIR)
+void Paddle::initializeStepper(byte STEP, byte DIR)
 {
     pinMode(STEP, OUTPUT);
     pinMode(DIR, OUTPUT);
@@ -40,12 +40,12 @@ void PaddleController::initializeStepper(byte STEP, byte DIR)
     this->_stepper.setAcceleration(ACCELERATION);
 }
 
-void PaddleController::initCalibration()
+void Paddle::initCalibration()
 {
     this->_stepper.setSpeed(CALIBRATION_SPEED);
 }
 
-void PaddleController::runCalibration()
+void Paddle::runCalibration()
 {
     //     if (MIN_LIMIT_CLICKED && this->limitMin == -1)
     //     {
@@ -72,7 +72,7 @@ void PaddleController::runCalibration()
     //     this->_stepper.stop();
 }
 
-void PaddleController::run()
+void Paddle::run()
 {
 
     if (this->_deltaTime >= SAMPLING_TIME)
@@ -102,7 +102,7 @@ void PaddleController::run()
     this->_stepper.run();
 }
 
-void PaddleController::isrA()
+void Paddle::isrA()
 {
     if (this->readA() == this->readB())
     {
@@ -132,7 +132,7 @@ void PaddleController::isrA()
     }
 }
 
-void PaddleController::isrB()
+void Paddle::isrB()
 {
 
     if (this->readB() != readA())
@@ -163,18 +163,18 @@ void PaddleController::isrB()
     }
 }
 
-void PaddleController::stop()
+void Paddle::stop()
 {
     this->_stepper.stop();
 }
 
-int PaddleController::readA()
+int Paddle::readA()
 {
     return digitalRead(this->_pinA);
     // return bitRead(this->_registerA, this->_bitMaskA);
 }
 
-int PaddleController::readB()
+int Paddle::readB()
 {
     return digitalRead(this->_pinB);
     // return bitRead(this->_registerB, this->_bitMaskB);

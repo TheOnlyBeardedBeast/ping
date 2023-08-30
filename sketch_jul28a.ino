@@ -1,6 +1,6 @@
-#include "PaddleController.h"
+#include "Paddle.h"
 
-PaddleController paddleL = PaddleController();
+Paddle paddleL = Paddle();
 AccelStepper steppe;
 
 void setup()

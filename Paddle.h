@@ -10,7 +10,7 @@ enum Direction
 
 using CallbackFunction = void (*)(int);
 
-class PaddleController
+class Paddle
 {
 public:
     // variables
@@ -20,7 +20,7 @@ public:
     int limitMax = -1;
 
     // constructors
-    PaddleController();
+    Paddle();
 
     // methods
     void initializeEncoder(byte A, byte B);
