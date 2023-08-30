@@ -11,6 +11,7 @@ class Ball
 public:
     void run();
     void setposition(int x, int y);
+    void stop();
     Point getPosition();
 
 private:

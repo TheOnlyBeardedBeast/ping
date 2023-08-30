@@ -24,12 +24,13 @@ public:
 
     // methods
     void initializeEncoder(byte A, byte B);
-    void initializeMotor(byte STEP, byte DIRECTION);
+    void initializeStepper(byte STEP, byte DIRECTION);
     void initCalibration();
     void runCalibration();
     void run();
     void isrA();
     void isrB();
+    void stop();
 
 private:
     // variables

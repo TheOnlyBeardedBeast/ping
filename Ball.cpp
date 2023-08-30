@@ -23,6 +23,12 @@ void Ball::setposition(int x, int y)
     this->_stepperB->setMaxSpeed(bmodifier * SPEED);
 }
 
+void Ball::stop()
+{
+    this->_stepperA->stop();
+    this->_stepperB->stop();
+}
+
 Point Ball::getPosition()
 {
     long a = this->_stepperA->currentPosition();

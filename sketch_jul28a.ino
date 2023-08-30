@@ -9,7 +9,7 @@ void setup()
   Serial.println("Arduino DUE - PING");
 
   paddleL.initializeEncoder(52, 53);
-  paddleL.initializeMotor(2, 3);
+  paddleL.initializeStepper(2, 3);
 
   attachInterrupt(
       digitalPinToInterrupt(52), []()

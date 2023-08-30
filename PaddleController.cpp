@@ -30,7 +30,7 @@ void PaddleController::initializeEncoder(byte A, byte B)
     pinMode(B, INPUT_PULLUP);
 }
 
-void PaddleController::initializeMotor(byte STEP, byte DIR)
+void PaddleController::initializeStepper(byte STEP, byte DIR)
 {
     pinMode(STEP, OUTPUT);
     pinMode(DIR, OUTPUT);
@@ -161,6 +161,11 @@ void PaddleController::isrB()
         this->_deltaTime = _currentTime - _lastTime;
         this->_lastTime = _currentTime;
     }
+}
+
+void PaddleController::stop()
+{
+    this->_stepper.stop();
 }
 
 int PaddleController::readA()
