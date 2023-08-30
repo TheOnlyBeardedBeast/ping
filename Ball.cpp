@@ -10,7 +10,7 @@ void Ball::setposition(int x, int y)
     int a = x + y;
     int b = x - y;
 
-    double rads = atan((b - this->_stepperB) / (a - _stepperA->currentPosition));
+    double rads = atan((b - this->_stepperB->currentPosition()) / (a - this->_stepperA->currentPosition()));
     double amodifier = cos(rads);
     double bmodifier = sin(rads);
 
