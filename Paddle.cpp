@@ -86,8 +86,11 @@ void Paddle::run()
         double newSpeed = (((10 / dTime) * (dTime * dPulse)) / ENCODER_RESOLUTION) * 100;
         newSpeed = CLAMP(newSpeed, 200, 800);
 
-        this->speed = newSpeed;
-        this->_stepper.setMaxSpeed(this->speed);
+        if (newSpeed != this->speed)
+        {
+            this->speed = newSpeed;
+            this->_stepper.setMaxSpeed(this->speed);
+        }
 
         this->_pulseCount = 0;
         this->_deltaTime = 0;
