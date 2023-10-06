@@ -1,5 +1,12 @@
 #include "Ball.h"
 #include "utils.h"
+#include "AccelStepper.h"
+
+void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
+{
+    this->_stepperA = _stepperA;
+    this->_stepperB = _stepperB;
+}
 
 void Ball::run()
 {
@@ -12,15 +19,18 @@ void Ball::setposition(int x, int y)
     int a = x + y;
     int b = x - y;
 
-    double rads = atan((b - this->_stepperB->currentPosition()) / (a - this->_stepperA->currentPosition()));
+    double rads = atan(((double)b - (double)this->_stepperB->currentPosition()) / ((double)a - (double)this->_stepperA->currentPosition()));
+    
     double amodifier = cos(rads);
     double bmodifier = sin(rads);
 
     this->_stepperA->moveTo(a);
     this->_stepperA->setMaxSpeed(amodifier * SPEED);
+    this->_stepperA->setAcceleration(ACCELERATION);
 
     this->_stepperB->moveTo(b);
     this->_stepperB->setMaxSpeed(bmodifier * SPEED);
+    this->_stepperB->setAcceleration(ACCELERATION);
 }
 
 void Ball::stop()

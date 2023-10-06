@@ -9,6 +9,7 @@ struct Point
 class Ball
 {
 public:
+    void setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB);
     void run();
     void setposition(int x, int y);
     void stop();
