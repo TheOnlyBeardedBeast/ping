@@ -13,9 +13,13 @@ public:
     void run();
     void setposition(int x, int y);
     void stop();
+    void calibrate();
     Point getPosition();
 
 private:
-    AccelStepper *_stepperA = NULL;
-    AccelStepper *_stepperB = NULL;
+    AccelStepper *_stepperA = nullptr;
+    AccelStepper *_stepperB = nullptr;
+
+    int maxX = 0;
+    int maxY = 0;
 };

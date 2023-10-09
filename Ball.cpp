@@ -50,3 +50,8 @@ Point Ball::getPosition()
 
     return result;
 }
+
+void Ball::calibrate()
+{
+    
+}
