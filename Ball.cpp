@@ -14,6 +14,12 @@ void Ball::run()
     this->_stepperB->run();
 }
 
+void Ball::runSpeed()
+{
+    this->_stepperA->runSpeed();
+    this->_stepperB->runSpeed();
+}
+
 void Ball::setposition(int x, int y)
 {
     int a = x + y;
@@ -26,10 +32,12 @@ void Ball::setposition(int x, int y)
 
     this->_stepperA->moveTo(a);
     this->_stepperA->setMaxSpeed(amodifier * SPEED);
+    this->_stepperA->setSpeed(amodifier * CALIBRATION_SPEED);
     this->_stepperA->setAcceleration(ACCELERATION);
 
     this->_stepperB->moveTo(b);
     this->_stepperB->setMaxSpeed(bmodifier * SPEED);
+    this->_stepperB->setSpeed(bmodifier * CALIBRATION_SPEED);
     this->_stepperB->setAcceleration(ACCELERATION);
 }
 
@@ -53,5 +61,52 @@ Point Ball::getPosition()
 
 void Ball::calibrate()
 {
+    
+    
+    for (byte i = 0; i < 4; i++)
+    {
+        this->calibrationState[i] = false;
+    }
+    
+    this->setposition(0,-100);
+    while (!this->calibrationState[0])
+    {
+        Serial.print(this->_stepperA->speed());
+        Serial.print(this->_stepperB->speed());
+        Serial.println("Go for y calibration");
+        this->runSpeed();
+    }
+
+    Serial.println(this->_stepperA->currentPosition());
+    Serial.println(this->_stepperB->currentPosition());
+
+    this->setposition(-100,this->getPosition().y);
+    while (!this->calibrationState[1])
+    {
+        Serial.print(this->_stepperA->speed());
+        Serial.print(this->_stepperB->speed());
+        Serial.println("Go for x calibration");
+        this->runSpeed();
+    }
+
+    Serial.println(this->_stepperA->currentPosition());
+    Serial.println(this->_stepperB->currentPosition());
+
+    Serial.println("calibrated");
+
+
+    // this->setposition(0,10000);
+    // while (!this->calibrationState[1])
+    // {
+    //     this->runSpeed();
+    // }
+
+    
+
+    // this->setposition(10000,0);
+    // while (!this->calibrationState[3])
+    // {
+    //     this->runSpeed();
+    // }
     
 }

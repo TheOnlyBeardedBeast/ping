@@ -45,34 +45,58 @@ void setup()
     stepperY.setAcceleration(ACCELERATION);
 
   ball.setMotors(&stepperX,&stepperY);
+  pinMode(32,INPUT_PULLUP);
+  pinMode(34,INPUT_PULLUP);
+
+  attachInterrupt(
+      digitalPinToInterrupt(32), []()
+      { 
+        ball.calibrationState[0] = true;
+    },
+      LOW);
+
+      attachInterrupt(
+      digitalPinToInterrupt(34), []()
+      { 
+        ball.calibrationState[1] = true;
+    },
+      LOW);
+
+  ball.calibrate();
 }
+
+// void loop()
+// {
+//   if(stepperX.distanceToGo() == 0 && stepperY.distanceToGo() == 0){
+//     switch (last)
+//     {
+//     case 0:
+//       ball.setposition(0,200);
+//       last = 1;
+//       break;
+//     case 1:
+//       ball.setposition(200,200);
+//       last = 2;
+//       break;
+//     case 2:
+//       ball.setposition(200,0);
+//       last = 3;
+//       break;
+//     case 3:
+//       ball.setposition(0,0);
+//       last = 0;
+//       break;
+    
+//     default:
+//       break;
+//     }
+//   }
+
+//   ball.run();
+// }
 
 void loop()
 {
-  if(stepperX.distanceToGo() == 0 && stepperY.distanceToGo() == 0){
-    switch (last)
-    {
-    case 0:
-      ball.setposition(0,200);
-      last = 1;
-      break;
-    case 1:
-      ball.setposition(200,200);
-      last = 2;
-      break;
-    case 2:
-      ball.setposition(200,0);
-      last = 3;
-      break;
-    case 3:
-      ball.setposition(0,0);
-      last = 0;
-      break;
-    
-    default:
-      break;
-    }
-  }
-
-  ball.run();
+  // Serial.println(digitalRead(32));
+  // delay(1000);
 }
