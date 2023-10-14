@@ -8,6 +8,12 @@ enum Direction
     CCW,
 };
 
+enum CalibrationPosition
+{
+    MIN = 0,
+    MAX = 1
+};
+
 using CallbackFunction = void (*)(int);
 
 class Paddle
@@ -18,19 +24,24 @@ public:
     double speed = 0;
     int limitMin = -1;
     int limitMax = -1;
+    byte limitSwitchState[2] = {false,false};
+    unsigned int CALIBRATION_LIMITS[2] = {-10000,10000};
+    unsigned int max = 0;
 
     // constructors
     Paddle();
 
     // methods
     void initializeEncoder(byte A, byte B);
-    void initializeStepper(byte STEP, byte DIRECTION);
+    void initializeStepper(AccelStepper* stepper);
     void initCalibration();
     void runCalibration();
     void run();
     void isrA();
     void isrB();
     void stop();
+    void center();
+    long getPosition();
 
 private:
     // variables
@@ -40,7 +51,7 @@ private:
     byte _pinB;
     // RoReg _registerB;
     // int _bitMaskB;
-    AccelStepper _stepper;
+    AccelStepper *_stepper = nullptr;
     bool running = false;
     DirectionSmoother smoother;
 
@@ -53,4 +64,7 @@ private:
 
     int readA();
     int readB();
+    void calibratePosition(CalibrationPosition postion);
 };
+
+AccelStepper* initializeStepper(byte STEP, byte DIR);

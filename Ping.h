@@ -7,13 +7,27 @@ enum Player{
     Player2 = 1
 };
 
+enum GameState 
+{
+    CALIBRATION,
+    MATCH_INIT,
+    MATCH_SERVE,
+    MATCH_RUN,
+    MATCH_END
+};
+
 class Ping
 {
 public:
+    GameState gameState = GameState::CALIBRATION;
+    
     void init();
     void run();
     void calibrate();
     void initMatch();
+    void serveMatch();
+    void runMatch();
+    void endMatch();
 
 private:
     Paddle *paddleL = nullptr;

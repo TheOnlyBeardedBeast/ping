@@ -6,6 +6,7 @@
 #define ENCODER_RESOLUTION 2400
 #define SAMPLING_TIME 100
 
+
 Paddle::Paddle()
 {
     this->direction = CW;
@@ -30,46 +31,67 @@ void Paddle::initializeEncoder(byte A, byte B)
     pinMode(B, INPUT_PULLUP);
 }
 
-void Paddle::initializeStepper(byte STEP, byte DIR)
+void Paddle::initializeStepper(AccelStepper* stepper)
+{
+    this->_stepper = stepper;
+    this->_stepper->setMaxSpeed(SPEED);
+    this->_stepper->setAcceleration(ACCELERATION);
+}
+
+AccelStepper *initializeStepper(byte STEP, byte DIR)
 {
     pinMode(STEP, OUTPUT);
     pinMode(DIR, OUTPUT);
 
-    this->_stepper = AccelStepper(1, STEP, DIR);
-    this->_stepper.setMaxSpeed(SPEED);
-    this->_stepper.setAcceleration(ACCELERATION);
+    AccelStepper stepper = AccelStepper(1, STEP, DIR);
+
+    stepper.setMaxSpeed(SPEED);
+    stepper.setAcceleration(ACCELERATION);
+
+    return &stepper;
 }
 
 void Paddle::initCalibration()
 {
-    this->_stepper.setSpeed(CALIBRATION_SPEED);
+    this->_stepper->setSpeed(CALIBRATION_SPEED);
+}
+
+void Paddle::calibratePosition(CalibrationPosition position)
+{
+    this->_stepper->moveTo(this->CALIBRATION_LIMITS[position]);
+    this->_stepper->setAcceleration(ACCELERATION);
+    this->_stepper->setMaxSpeed(CALIBRATION_SPEED);
+
+    while (!this->limitSwitchState[position])
+    {
+        this->_stepper->run();
+    }
+
+    this->_stepper->stop();
 }
 
 void Paddle::runCalibration()
 {
-    //     if (MIN_LIMIT_CLICKED && this->limitMin == -1)
-    //     {
-    //         this->_stepper.stop();
-    //         this->_stepper.setCurrentPosition(0);
-    //         this->limitMin = this->_stepper.currentPosition();
-    //         this->_stepper.setSpeed(-CALIBRATION_SPEED);
-    //         goto RUN_CALIBRATION;
-    //     }
+    this->calibratePosition(CalibrationPosition::MIN);
+    this->_stepper->setCurrentPosition(-SAFEZONE_WIDTH);
 
-    //     if (MAX_LIMIT_CLICKED && this->limitMax == -1)
-    //     {
-    //         this->_stepper.stop();
-    //         this->limitMax = this->_stepper.currentPosition();
-    //         this->_stepper.setSpeed(-CALIBRATION_SPEED);
-    //     }
-    // RUN_CALIBRATION:
-    //     if (this->limitMin == -1 || this->limitMax == -1)
-    //     {
-    //         this->_stepper.runSpeed();
-    //         return;
-    //     }
 
-    //     this->_stepper.stop();
+    this->calibratePosition(CalibrationPosition::MAX);
+    this->max = this->_stepper->currentPosition() - SAFEZONE_WIDTH;
+
+    this->center();
+}
+
+void Paddle::center()
+{
+    this->_stepper->moveTo(this->max>>1);
+
+    while (this->_stepper->distanceToGo()!=0)
+    {
+        this->_stepper->run();
+    }
+
+    this->_stepper->stop();
 }
 
 void Paddle::run()
@@ -89,7 +111,7 @@ void Paddle::run()
         if (newSpeed != this->speed)
         {
             this->speed = newSpeed;
-            this->_stepper.setMaxSpeed(this->speed);
+            this->_stepper->setMaxSpeed(this->speed);
         }
 
         this->_pulseCount = 0;
@@ -98,11 +120,11 @@ void Paddle::run()
     else if (this->running && millis() - this->_lastTime > SAMPLING_TIME + 10)
     {
         this->running = false;
-        this->_stepper.stop();
+        this->_stepper->stop();
         this->speed = 0;
     }
 
-    this->_stepper.run();
+    this->_stepper->run();
 }
 
 void Paddle::isrA()
@@ -111,18 +133,18 @@ void Paddle::isrA()
     {
         this->direction = CW;
         smoother.smoothDirection(CW);
-        if (smoother.getCurrentDirection() == CW && this->_stepper.distanceToGo() <= 0)
+        if (smoother.getCurrentDirection() == CW && this->_stepper->distanceToGo() <= 0)
         {
-            this->_stepper.moveTo(10000);
+            this->_stepper->moveTo(10000);
         }
     }
     else
     {
         this->direction = CCW;
         smoother.smoothDirection(CCW);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper.distanceToGo() >= 0)
+        if (smoother.getCurrentDirection() == CCW && this->_stepper->distanceToGo() >= 0)
         {
-            this->_stepper.moveTo(-10000);
+            this->_stepper->moveTo(-10000);
         }
     }
 
@@ -142,18 +164,18 @@ void Paddle::isrB()
     {
         this->direction = CW;
         smoother.smoothDirection(CW);
-        if (smoother.getCurrentDirection() == CW && this->_stepper.distanceToGo() <= 0)
+        if (smoother.getCurrentDirection() == CW && this->_stepper->distanceToGo() <= 0)
         {
-            this->_stepper.moveTo(10000);
+            this->_stepper->moveTo(10000);
         }
     }
     else
     {
         this->direction = CCW;
         smoother.smoothDirection(CCW);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper.distanceToGo() >= 0)
+        if (smoother.getCurrentDirection() == CCW && this->_stepper->distanceToGo() >= 0)
         {
-            this->_stepper.moveTo(-10000);
+            this->_stepper->moveTo(-10000);
         }
     }
 
@@ -168,7 +190,7 @@ void Paddle::isrB()
 
 void Paddle::stop()
 {
-    this->_stepper.stop();
+    this->_stepper->stop();
 }
 
 int Paddle::readA()
@@ -181,4 +203,9 @@ int Paddle::readB()
 {
     return digitalRead(this->_pinB);
     // return bitRead(this->_registerB, this->_bitMaskB);
+}
+
+long Paddle::getPosition()
+{
+    this->_stepper->currentPosition();
 }

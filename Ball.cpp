@@ -133,7 +133,7 @@ void Ball::center()
 {
     this->setposition(this->limits.x >> 1, this->limits.y>>1);
 
-    while (this->_stepperA->distanceToGo() != 0 || this->_stepperB->distanceToGo() != 0)
+    while (this->needsToMove())
     {
         this->run();
     }
