@@ -30,8 +30,7 @@ public:
     void endMatch();
 
 private:
-    Paddle *paddleL = nullptr;
-    Paddle *paddleR = nullptr;
+    Paddle *paddles[2] = {nullptr,nullptr};
     Ball *ball = nullptr;
     Player lastWinner = Player::NONE;
 };

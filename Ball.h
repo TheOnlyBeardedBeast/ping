@@ -6,6 +6,12 @@ struct Point
     int y;
 };
 
+enum BouncPosition
+{
+    TOP,
+    BOTTOm,
+};
+
 class Ball
 {
 public:
@@ -42,9 +48,28 @@ public:
     /// @return Poit which contains an X and an Y integer
     Point getPosition();
 
+    /// @brief Sets the ball ball position to the playfield center
     void center();
 
+    /// @brief Center the ball on the playfield and waits until the ball is positioned
+    void runCenter();
+
+    /// @brief Checks if the ball has any distance to make
+    /// @return return true or false
     bool needsToMove();
+
+    /// @brief angle the ball used last time
+    float lastAngle;
+    float lastVectorX;
+    float lastVectorY;
+    float lastSpeed;
+
+    /// @brief Bounces onn the limits 
+    void bounce();
+
+    /// @brief Shoots a ball in an angle and sets its position to the limits
+    /// @param radians defines the angle of shooting
+    void shootAngle(double radians);
 private:
     AccelStepper *_stepperA = nullptr;
     AccelStepper *_stepperB = nullptr;

@@ -29,6 +29,8 @@ void Ball::setposition(int x, int y, int speed)
     // Calculating the angle in radians fo the next relative movement
     double rads = atan(((double)b - (double)this->_stepperB->currentPosition()) / ((double)a - (double)this->_stepperA->currentPosition()));
     
+    Point currentPosition = this->getPosition();
+    this->lastAngle = atan(double(currentPosition.y - y) / double(currentPosition.x - x));
     // Separating the movement into its vectors
     // amodifier^2 + bmodifier^2 = 1^2
     // amodifier^2 + bmodifier^2 = 1
@@ -129,9 +131,9 @@ void Ball::initCalibration()
     }
 }
 
-void Ball::center()
+void Ball::runCenter()
 {
-    this->setposition(this->limits.x >> 1, this->limits.y>>1);
+    this->center();
 
     while (this->needsToMove())
     {
@@ -141,8 +143,52 @@ void Ball::center()
     this->stop();
 }
 
+void Ball::center()
+{
+    this->setposition(this->limits.x >> 1, this->limits.y>>1);
+}
+
 
 bool Ball::needsToMove()
 {
     return this->_stepperA->distanceToGo() != 0 && this->_stepperB->distanceToGo() != 0;
+}
+
+void Ball::bounce()
+{
+    shootAngle(-this->lastAngle);
+}
+
+void Ball::shootAngle(double rads)
+{
+    Point position = this->getPosition();
+
+    bool shootingDown = rads > PI;
+    bool shootingLeft = rads > PI*0.5 && rads < PI*1.5;
+    
+    int verticalRange = shootingDown ? position.y : this->limits.y - position.y;
+
+    double adjacent = (shootingLeft ? position.x : this->limits.x - position.x);
+    double tanrads = tan(rads);
+    double opposite = adjacent * tanrads;
+
+    bool overShoot = opposite > verticalRange;
+
+    if(overShoot)
+    {
+        opposite = verticalRange;
+        adjacent = opposite / tanrads;
+    }
+
+    if(shootingDown)
+    {
+        opposite *= -1;
+    }
+
+    if(shootingLeft)
+    {
+        adjacent *= -1;
+    }
+
+    this->setposition(position.x + adjacent, position.y + opposite);
 }

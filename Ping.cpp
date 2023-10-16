@@ -1,9 +1,10 @@
 #include "Ping.h"
+#include "utils.h"
 
 void Ping::calibrate()
 {
-    this->paddleL->runCalibration();
-    this->paddleR->runCalibration();
+    this->paddles[0]->runCalibration();
+    this->paddles[1]->runCalibration();
     this->ball->calibrate();
 }
 
@@ -29,37 +30,84 @@ void Ping::initMatch()
 
 void Ping::endMatch()
 {
-    this->ball->center();
-    // TODO: create an async centering so the padles can center in the same time;
-    this->paddleL->center();
-    this->paddleR->center();
+    this->ball->runCenter();
+
+    this->paddles[0]->center();
+    this->paddles[1]->center();
+
+    while (paddles[0]->needsToMove() || paddles[1]->needsToMove())
+    {
+        paddles[0]->run();
+        paddles[1]->run();
+    }
+    
 
     this->gameState = GameState::MATCH_INIT;
 }
 
+/// @brief Runs a serving step in the game, must be called in a loop
 void Ping::serveMatch()
 {
-    if(digitalRead(42))
+    if(SERVE_PIN(this->lastWinner))
     {
-        // TODO: set ball position
+        this->ball->shootAngle(0);
+        // TODO: #improvement calculate a vector to serve a ball in an angle if the paddle is moving
         this->gameState = GameState::MATCH_RUN;
         return;
     }
 
-    // Get active player
-    this->ball->setposition(this->ball->getPosition().x,this->paddleL->getPosition());
+    Paddle* paddle = this->paddles[this->lastWinner]; 
+    int paddlePosition = this->paddles[this->lastWinner]->getPosition();
+
+    int mappedPosition = map(paddlePosition,0,paddle->limitMax,0,ball->limits.x);
+    this->ball->setposition(this->ball->getPosition().x,mappedPosition);
     this->run();
 }
 
 void Ping::run()
 {
     this->ball->run();
-    this->paddleL->run();
-    this->paddleR->run();
+    this->paddles[0]->run();
+    this->paddles[1]->run();
 }
 
 void Ping::runMatch()
 {
+    Point* ballPosition = &this->ball->getPosition();
+    Point* ballLimits = &this->ball->limits;
+
+    if(ball->needsToMove()) {
+        // TODO:
+        // check paddle
+        // if paddle hit then shoot
+    }
+        // TODO:
+        // check if game point or wall hit
+        // if vertical wall hit -> bounce
+        // if horizontal wall hit -> game point
+    else if(ballLimits->x <= ballPosition->x || 0 >= ballPosition->x)
+    {
+        ball->bounce();
+    } 
+    else if(ballLimits->y <= ballPosition->y || 0 >= ballPosition->y)
+    {
+        this->gameState = GameState::MATCH_END;
+    }
+    // if(ballPosition->y <= 0+PADDLE_WIDTH || ballPosition->y > ballLimits->y -PADDLE_WIDTH)
+    // {
+    //     // TODO: separate sides
+    //     // only calculate hit if the next position is going to the paddle
+    //     // checking the vector also prevents multiple calls
+    //     // check the x position as well
+    // }
+    // else if (true) 
+    // {
+
+    // }
+    // else if((ballPosition->x >= ballLimits->x || ballPosition->x <= 0) && ballPosition->y > 0 && ballPosition->y < ballLimits->y)
+    // {
+    //     // TODO: hit the top or bottom wall
+    // }
     // TODO: wall hit
     // TODO: match point {
     // TODO: set winner

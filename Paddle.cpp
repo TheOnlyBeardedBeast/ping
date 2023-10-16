@@ -85,6 +85,11 @@ void Paddle::runCalibration()
 void Paddle::center()
 {
     this->_stepper->moveTo(this->max>>1);
+}
+
+void Paddle::runCenter()
+{
+    this->center();
 
     while (this->_stepper->distanceToGo()!=0)
     {
@@ -208,4 +213,9 @@ int Paddle::readB()
 long Paddle::getPosition()
 {
     this->_stepper->currentPosition();
+}
+
+bool Paddle::needsToMove()
+{
+    this->_stepper->distanceToGo() != 0;
 }

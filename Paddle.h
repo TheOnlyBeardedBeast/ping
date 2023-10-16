@@ -41,7 +41,9 @@ public:
     void isrB();
     void stop();
     void center();
+    void runCenter();
     long getPosition();
+    bool needsToMove();
 
 private:
     // variables
