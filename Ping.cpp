@@ -73,8 +73,8 @@ void Ping::run()
 
 void Ping::runMatch()
 {
-    Point* ballPosition = &this->ball->getPosition();
-    Point* ballLimits = &this->ball->limits;
+    Point ballPosition = this->ball->getPosition();
+    Point ballLimits = this->ball->limits;
 
     if(ball->needsToMove()) {
         // TODO:
@@ -85,15 +85,15 @@ void Ping::runMatch()
         // check if game point or wall hit
         // if vertical wall hit -> bounce
         // if horizontal wall hit -> game point
-    else if(ballLimits->x <= ballPosition->x || 0 >= ballPosition->x)
+    else if(ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
     {
         ball->bounce();
     } 
-    else if(ballLimits->y <= ballPosition->y || 0 >= ballPosition->y)
+    else if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
     {
         this->gameState = GameState::MATCH_END;
     }
-    // if(ballPosition->y <= 0+PADDLE_WIDTH || ballPosition->y > ballLimits->y -PADDLE_WIDTH)
+    // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
     // {
     //     // TODO: separate sides
     //     // only calculate hit if the next position is going to the paddle
@@ -104,7 +104,7 @@ void Ping::runMatch()
     // {
 
     // }
-    // else if((ballPosition->x >= ballLimits->x || ballPosition->x <= 0) && ballPosition->y > 0 && ballPosition->y < ballLimits->y)
+    // else if((ballPosition.x >= ballLimits.x || ballPosition.x <= 0) && ballPosition.y > 0 && ballPosition.y < ballLimits.y)
     // {
     //     // TODO: hit the top or bottom wall
     // }
