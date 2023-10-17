@@ -67,6 +67,17 @@ Point Ball::getPosition()
     return result;
 }
 
+void Ball::postCalibrationStop()
+{
+    this->stop();
+
+    while (this->needsToMove())
+    {
+        this->run();
+    }
+    
+}
+
 void Ball::calibrate()
 {
     // Initialize visited limit switch array
@@ -74,22 +85,24 @@ void Ball::calibrate()
     
     // Looking for the bottom edge
     this->setposition(-10000,0,CALIBRATION_SPEED);
-    while (!this->calibrationState[0])
+    while (digitalRead(22))
     {
         this->run();
     }
 
     this->stop();
+    //this->postCalibrationStop();
 
 
     // Looking for the left edge
     this->setposition(this->getPosition().x,-10000,CALIBRATION_SPEED);
-    while (!this->calibrationState[1])
+    while (digitalRead(23))
     {
         this->run();
     }
 
     this->stop();
+    //this->postCalibrationStop();
 
     // If we have the left and the bottom edge we can set our origin point
     this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
@@ -97,30 +110,41 @@ void Ball::calibrate()
 
     // Looking for the right edge
     this->setposition(0,10000, CALIBRATION_SPEED);
-    while (!this->calibrationState[2])
+    while (digitalRead(24))
     {
         this->run();
     }
 
     this->stop();
+    //this->postCalibrationStop();
 
+    Point midCalibrationPosition = this->getPosition();
+    this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
+
+    this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
+    while(this->needsToMove())
+    {
+        this->run();
+    }
 
     // Looking for the top edge
     this->setposition(10000,this->getPosition().y,CALIBRATION_SPEED);
-    while (!this->calibrationState[3])
+    while (digitalRead(25))
     {
         this->run();
     }
 
     this->stop();
+    //this->postCalibrationStop();
 
     // Setting the max limit for the axes
     Point position = this->getPosition();
     this->limits.x = position.x - SAFEZONE_WIDTH;
-    this->limits.y = position.y - SAFEZONE_WIDTH;
+    // this->limits.y = position.y - SAFEZONE_WIDTH;
+    
 
     // Center the ball
-    this->center();
+    this->runCenter();
 }
 
 void Ball::initCalibration() 

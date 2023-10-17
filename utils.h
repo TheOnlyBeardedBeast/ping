@@ -2,7 +2,7 @@
 #define HALF_PI 1.57079632679
 #define SPEED 2000
 #define ACCELERATION 10 * SPEED
-#define CALIBRATION_SPEED 400
+#define CALIBRATION_SPEED 1000
 #define SAFEZONE_WIDTH 50
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)
 #define PADDLE_WIDTH 0

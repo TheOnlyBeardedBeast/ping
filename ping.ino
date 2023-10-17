@@ -29,38 +29,47 @@ void setup()
 
   // ball setup
 
-  pinMode(4,OUTPUT);
-  pinMode(5,OUTPUT);
-  pinMode(6,OUTPUT);
-  pinMode(7,OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(7, OUTPUT);
 
-    stepperX = AccelStepper(1, 4, 5);
-    stepperX.setCurrentPosition(0);
-    stepperX.setMaxSpeed(SPEED);
-    stepperX.setAcceleration(ACCELERATION);
+  stepperX = AccelStepper(1, 4, 5);
+  // stepperX.setCurrentPosition(0);
+  // stepperX.setMaxSpeed(SPEED);
+  // stepperX.setAcceleration(ACCELERATION);
 
-    stepperY = AccelStepper(1, 6, 7);
-    stepperX.setCurrentPosition(0);
-    stepperY.setMaxSpeed(SPEED);
-    stepperY.setAcceleration(ACCELERATION);
+  stepperY = AccelStepper(1, 6, 7);
+  // stepperX.setCurrentPosition(0);
+  // stepperY.setMaxSpeed(SPEED);
+  // stepperY.setAcceleration(ACCELERATION);
 
-  ball.setMotors(&stepperX,&stepperY);
-  pinMode(32,INPUT_PULLUP);
-  pinMode(34,INPUT_PULLUP);
+  ball.setMotors(&stepperX, &stepperY);
 
-  attachInterrupt(
-      digitalPinToInterrupt(32), []()
-      { 
-        ball.calibrationState[0] = true;
-    },
-      LOW);
+  pinMode(22, INPUT_PULLUP);
+  pinMode(23, INPUT_PULLUP);
+  pinMode(24, INPUT_PULLUP);
+  pinMode(25, INPUT_PULLUP);
 
-      attachInterrupt(
-      digitalPinToInterrupt(34), []()
-      { 
-        ball.calibrationState[1] = true;
-    },
-      LOW);
+  // attachInterrupt(
+  //     digitalPinToInterrupt(22), []()
+  //     { ball.calibrationState[0] = true; },
+  //     LOW);
+
+  // attachInterrupt(
+  //     digitalPinToInterrupt(23), []()
+  //     { ball.calibrationState[1] = true; },
+  //     LOW);
+
+  // attachInterrupt(
+  //     digitalPinToInterrupt(24), []()
+  //     { ball.calibrationState[2] = true; },
+  //     LOW);
+  
+  // attachInterrupt(
+  //     digitalPinToInterrupt(25), []()
+  //     { ball.calibrationState[3] = true; },
+  //     LOW);
 
   ball.calibrate();
 }
@@ -86,7 +95,7 @@ void setup()
 //       ball.setposition(0,0);
 //       last = 0;
 //       break;
-    
+
 //     default:
 //       break;
 //     }
@@ -97,6 +106,4 @@ void setup()
 
 void loop()
 {
-  // Serial.println(digitalRead(32));
-  // delay(1000);
 }

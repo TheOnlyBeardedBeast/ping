@@ -24,6 +24,8 @@ public:
     /// @param _stepperB 
     void setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB);
 
+    void init();
+
     /// @brief Call the run function for each stepper which moves the ball
     void run();
 
@@ -75,4 +77,5 @@ private:
     AccelStepper *_stepperB = nullptr;
 
     void initCalibration();
+    void postCalibrationStop();
 };
