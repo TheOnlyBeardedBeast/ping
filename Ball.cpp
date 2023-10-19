@@ -71,11 +71,16 @@ void Ball::postCalibrationStop()
 {
     this->stop();
 
+    this->waitRun();
+    
+}
+
+void Ball::waitRun()
+{
     while (this->needsToMove())
     {
         this->run();
     }
-    
 }
 
 void Ball::calibrate()
@@ -121,11 +126,10 @@ void Ball::calibrate()
     Point midCalibrationPosition = this->getPosition();
     this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
 
-    this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
-    while(this->needsToMove())
-    {
-        this->run();
-    }
+    // this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
+    this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
+
+    waitRun();
 
     // Looking for the top edge
     this->setposition(10000,this->getPosition().y,CALIBRATION_SPEED);
@@ -165,6 +169,11 @@ void Ball::runCenter()
     }
     
     this->stop();
+
+    while (this->needsToMove())
+    {
+        this->run();
+    }
 }
 
 void Ball::center()

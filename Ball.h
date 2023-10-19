@@ -78,4 +78,5 @@ private:
 
     void initCalibration();
     void postCalibrationStop();
+    void waitRun();
 };
