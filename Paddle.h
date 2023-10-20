@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <AccelStepper.h>
+#include <FastAccelStepper.h>
 #include "DirectionSmoother.h"
 
 enum Direction
@@ -33,7 +33,7 @@ public:
 
     // methods
     void initializeEncoder(byte A, byte B);
-    void initializeStepper(AccelStepper* stepper);
+    void initializeStepper(FastAccelStepper* stepper);
     void initCalibration();
     void runCalibration();
     void run();
@@ -53,7 +53,7 @@ private:
     byte _pinB;
     // RoReg _registerB;
     // int _bitMaskB;
-    AccelStepper *_stepper = nullptr;
+    FastAccelStepper *_stepper = NULL;
     bool running = false;
     DirectionSmoother smoother;
 
@@ -69,4 +69,4 @@ private:
     void calibratePosition(CalibrationPosition postion);
 };
 
-AccelStepper* initializeStepper(byte STEP, byte DIR);
+FastAccelStepper* initializeStepper(byte STEP, byte DIR);

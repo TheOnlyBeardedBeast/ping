@@ -1,8 +1,8 @@
 #include "Ball.h"
 #include "utils.h"
-#include "AccelStepper.h"
+#include "FastAccelStepper.h"
 
-void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
+void Ball::setMotors(FastAccelStepper *_stepperA, FastAccelStepper *_stepperB)
 {
     this->_stepperA = _stepperA;
     this->_stepperB = _stepperB;
@@ -10,8 +10,8 @@ void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
 
 void Ball::run()
 {
-    this->_stepperA->run();
-    this->_stepperB->run();
+    // this->_stepperA->run();
+    // this->_stepperB->run();
 }
 
 void Ball::setposition(int x, int y)
@@ -27,7 +27,7 @@ void Ball::setposition(int x, int y, int speed)
     int b = x - y;
 
     // Calculating the angle in radians fo the next relative movement
-    double rads = atan(((double)b - (double)this->_stepperB->currentPosition()) / ((double)a - (double)this->_stepperA->currentPosition()));
+    double rads = atan(((double)b - (double)this->_stepperB->getCurrentPosition()) / ((double)a - (double)this->_stepperA->getCurrentPosition()));
     
     Point currentPosition = this->getPosition();
     this->lastAngle = atan(double(currentPosition.y - y) / double(currentPosition.x - x));
@@ -39,25 +39,25 @@ void Ball::setposition(int x, int y, int speed)
     double bmodifier = sin(rads);
 
     this->_stepperA->moveTo(a);
-    this->_stepperA->setMaxSpeed(amodifier * speed);
+    this->_stepperA->setSpeedInHz(amodifier * speed);
     this->_stepperA->setAcceleration(ACCELERATION);
 
     this->_stepperB->moveTo(b);
-    this->_stepperB->setMaxSpeed(bmodifier * speed);
+    this->_stepperB->setSpeedInHz(bmodifier * speed);
     this->_stepperB->setAcceleration(ACCELERATION);
 }
 
 void Ball::stop()
 {
-    this->_stepperA->stop();
-    this->_stepperB->stop();
+    this->_stepperA->stopMove();
+    this->_stepperB->stopMove();
 }
 
 Point Ball::getPosition()
 {
     // Getting A and B stepper position
-    long a = this->_stepperA->currentPosition();
-    long b = this->_stepperB->currentPosition();
+    long a = this->_stepperA->getCurrentPosition();
+    long b = this->_stepperB->getCurrentPosition();
 
     // Creating the result struct and converting motor positions to X and Y coordinated 
     Point result = Point();
@@ -79,7 +79,7 @@ void Ball::waitRun()
 {
     while (this->needsToMove())
     {
-        this->run();
+        __asm__ __volatile__ ("nop\n\t");
     }
 }
 
@@ -89,66 +89,65 @@ void Ball::calibrate()
     this->initCalibration();
     
     // Looking for the bottom edge
-    this->setposition(-10000,0,CALIBRATION_SPEED);
-    while (digitalRead(22))
-    {
-        this->run();
-    }
+    this->setposition(10000,0,CALIBRATION_SPEED);
+    // while (digitalRead(22))
+    // {
+    //     __asm__ __volatile__ ("nop\n\t");
+    // }
+    // this->stop();
+    // //this->postCalibrationStop();
 
-    this->stop();
-    //this->postCalibrationStop();
 
+    // // Looking for the left edge
+    // this->setposition(this->getPosition().x,10000,CALIBRATION_SPEED);
+    // while (digitalRead(23))
+    // {
+    //     __asm__ __volatile__ ("nop\n\t");
+    // }
 
-    // Looking for the left edge
-    this->setposition(this->getPosition().x,-10000,CALIBRATION_SPEED);
-    while (digitalRead(23))
-    {
-        this->run();
-    }
+    // this->stop();
+    // //this->postCalibrationStop();
 
-    this->stop();
-    //this->postCalibrationStop();
+    // // If we have the left and the bottom edge we can set our origin point
+    // this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
+    // this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
 
-    // If we have the left and the bottom edge we can set our origin point
-    this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
-    this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
+    // // Looking for the right edge
+    // this->setposition(0,-10000, CALIBRATION_SPEED);
+    // while (digitalRead(24))
+    // {
+    //     __asm__ __volatile__ ("nop\n\t");
+    // }
 
-    // Looking for the right edge
-    this->setposition(0,10000, CALIBRATION_SPEED);
-    while (digitalRead(24))
-    {
-        this->run();
-    }
+    // this->stop();
+    // //this->postCalibrationStop();
 
-    this->stop();
-    //this->postCalibrationStop();
+    // Point midCalibrationPosition = this->getPosition();
+    // this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
 
-    Point midCalibrationPosition = this->getPosition();
-    this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
+    // // this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
+    // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
 
-    // this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
-    this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
+    // waitRun();
 
-    waitRun();
+    // // Looking for the top edge
+    // this->setposition(-10000,this->getPosition().y,CALIBRATION_SPEED);
+    // while (digitalRead(25))
+    // {
+    //     this->run();
+    // }
 
-    // Looking for the top edge
-    this->setposition(10000,this->getPosition().y,CALIBRATION_SPEED);
-    while (digitalRead(25))
-    {
-        this->run();
-    }
+    // this->stop();
+    // //this->postCalibrationStop();
 
-    this->stop();
-    //this->postCalibrationStop();
-
-    // Setting the max limit for the axes
-    Point position = this->getPosition();
-    this->limits.x = position.x - SAFEZONE_WIDTH;
-    // this->limits.y = position.y - SAFEZONE_WIDTH;
+    // // Setting the max limit for the axes
+    // Point position = this->getPosition();
+    // this->limits.x = position.x - SAFEZONE_WIDTH;
+    // // this->limits.y = position.y - SAFEZONE_WIDTH;
     
 
-    // Center the ball
-    this->runCenter();
+    // // Center the ball
+    // this->runCenter();
 }
 
 void Ball::initCalibration() 
@@ -184,7 +183,7 @@ void Ball::center()
 
 bool Ball::needsToMove()
 {
-    return this->_stepperA->distanceToGo() != 0 && this->_stepperB->distanceToGo() != 0;
+    return this->_stepperA->isRunning() && this->_stepperB->isRunning();
 }
 
 void Ball::bounce()

@@ -31,43 +31,44 @@ void Paddle::initializeEncoder(byte A, byte B)
     pinMode(B, INPUT_PULLUP);
 }
 
-void Paddle::initializeStepper(AccelStepper* stepper)
+void Paddle::initializeStepper(FastAccelStepper* stepper)
 {
     this->_stepper = stepper;
-    this->_stepper->setMaxSpeed(SPEED);
+    this->_stepper->setSpeedInHz(SPEED);
     this->_stepper->setAcceleration(ACCELERATION);
 }
 
-AccelStepper *initializeStepper(byte STEP, byte DIR)
+FastAccelStepper *initializeStepper(byte STEP, byte DIR)
 {
-    pinMode(STEP, OUTPUT);
-    pinMode(DIR, OUTPUT);
+    // pinMode(STEP, OUTPUT);
+    // pinMode(DIR, OUTPUT);
 
-    AccelStepper stepper = AccelStepper(1, STEP, DIR);
+    // FastAccelStepper stepper = AccelStepper(1, STEP, DIR);
 
-    stepper.setMaxSpeed(SPEED);
-    stepper.setAcceleration(ACCELERATION);
+    // stepper.setMaxSpeed(SPEED);
+    // stepper.setAcceleration(ACCELERATION);
 
-    return &stepper;
+    // return &stepper;
+    return nullptr;
 }
 
 void Paddle::initCalibration()
 {
-    this->_stepper->setSpeed(CALIBRATION_SPEED);
+    this->_stepper->setSpeedInHz(CALIBRATION_SPEED);
 }
 
 void Paddle::calibratePosition(CalibrationPosition position)
 {
     this->_stepper->moveTo(this->CALIBRATION_LIMITS[position]);
     this->_stepper->setAcceleration(ACCELERATION);
-    this->_stepper->setMaxSpeed(CALIBRATION_SPEED);
+    this->_stepper->setSpeedInHz(CALIBRATION_SPEED);
 
     while (!this->limitSwitchState[position])
     {
-        this->_stepper->run();
+        __asm__ __volatile__ ("nop\n\t");
     }
 
-    this->_stepper->stop();
+    this->_stepper->stopMove();
 }
 
 void Paddle::runCalibration()
@@ -77,7 +78,7 @@ void Paddle::runCalibration()
 
 
     this->calibratePosition(CalibrationPosition::MAX);
-    this->max = this->_stepper->currentPosition() - SAFEZONE_WIDTH;
+    this->max = this->_stepper->getCurrentPosition() - SAFEZONE_WIDTH;
 
     this->center();
 }
@@ -91,12 +92,12 @@ void Paddle::runCenter()
 {
     this->center();
 
-    while (this->_stepper->distanceToGo()!=0)
+    while (this->_stepper->isRunning())
     {
-        this->_stepper->run();
+        __asm__ __volatile__ ("nop\n\t");
     }
 
-    this->_stepper->stop();
+    this->_stepper->stopMove();
 }
 
 void Paddle::run()
@@ -116,7 +117,7 @@ void Paddle::run()
         if (newSpeed != this->speed)
         {
             this->speed = newSpeed;
-            this->_stepper->setMaxSpeed(this->speed);
+            this->_stepper->setSpeedInHz(this->speed);
         }
 
         this->_pulseCount = 0;
@@ -125,11 +126,11 @@ void Paddle::run()
     else if (this->running && millis() - this->_lastTime > SAMPLING_TIME + 10)
     {
         this->running = false;
-        this->_stepper->stop();
+        this->_stepper->stopMove();
         this->speed = 0;
     }
 
-    this->_stepper->run();
+    // this->_stepper->run();
 }
 
 void Paddle::isrA()
@@ -138,7 +139,7 @@ void Paddle::isrA()
     {
         this->direction = CW;
         smoother.smoothDirection(CW);
-        if (smoother.getCurrentDirection() == CW && this->_stepper->distanceToGo() <= 0)
+        if (smoother.getCurrentDirection() == CW && this->_stepper->targetPos() <= 0)
         {
             this->_stepper->moveTo(10000);
         }
@@ -147,7 +148,7 @@ void Paddle::isrA()
     {
         this->direction = CCW;
         smoother.smoothDirection(CCW);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper->distanceToGo() >= 0)
+        if (smoother.getCurrentDirection() == CCW && this->_stepper->targetPos() >= 0)
         {
             this->_stepper->moveTo(-10000);
         }
@@ -169,7 +170,7 @@ void Paddle::isrB()
     {
         this->direction = CW;
         smoother.smoothDirection(CW);
-        if (smoother.getCurrentDirection() == CW && this->_stepper->distanceToGo() <= 0)
+        if (smoother.getCurrentDirection() == CW && this->_stepper->targetPos() <= 0)
         {
             this->_stepper->moveTo(10000);
         }
@@ -178,7 +179,7 @@ void Paddle::isrB()
     {
         this->direction = CCW;
         smoother.smoothDirection(CCW);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper->distanceToGo() >= 0)
+        if (smoother.getCurrentDirection() == CCW && this->_stepper->targetPos() >= 0)
         {
             this->_stepper->moveTo(-10000);
         }
@@ -195,7 +196,7 @@ void Paddle::isrB()
 
 void Paddle::stop()
 {
-    this->_stepper->stop();
+    this->_stepper->stopMove();
 }
 
 int Paddle::readA()
@@ -212,10 +213,10 @@ int Paddle::readB()
 
 long Paddle::getPosition()
 {
-    this->_stepper->currentPosition();
+    this->_stepper->getCurrentPosition();
 }
 
 bool Paddle::needsToMove()
 {
-    this->_stepper->distanceToGo() != 0;
+    this->_stepper->isRunning();
 }

@@ -1,4 +1,4 @@
-#include <AccelStepper.h>
+#include <FastAccelStepper.h>
 
 struct Point
 {
@@ -22,7 +22,7 @@ public:
     /// @brief Sets the motors which moves the balls
     /// @param _stepperA 
     /// @param _stepperB 
-    void setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB);
+    void setMotors(FastAccelStepper *_stepperA, FastAccelStepper *_stepperB);
 
     void init();
 
@@ -73,8 +73,8 @@ public:
     /// @param radians defines the angle of shooting
     void shootAngle(double radians);
 private:
-    AccelStepper *_stepperA = nullptr;
-    AccelStepper *_stepperB = nullptr;
+    FastAccelStepper *_stepperA = NULL;
+    FastAccelStepper *_stepperB = NULL;
 
     void initCalibration();
     void postCalibrationStop();

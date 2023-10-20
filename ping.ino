@@ -1,17 +1,19 @@
 #include "Paddle.h"
-#include "AccelStepper.h"
+#include "FastAccelStepper.h"
 #include "Ball.h"
 #include "utils.h"
 
 // Paddle paddleL = Paddle();
 // AccelStepper steppe;
 byte last = 1;
-AccelStepper stepperX;
-AccelStepper stepperY;
+FastAccelStepperEngine engine = FastAccelStepperEngine();
+FastAccelStepper *stepperX;
+FastAccelStepper *stepperY;
 Ball ball;
 
 void setup()
 {
+  engine.init();
   Serial.begin(9600);
   Serial.println("Arduino DUE - PING");
 
@@ -29,22 +31,28 @@ void setup()
 
   // ball setup
 
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
 
-  stepperX = AccelStepper(1, 4, 5);
+  stepperX = engine.stepperConnectToPin(6);
+  stepperX->setDirectionPin(7);
+  int speed = 12000;
+  stepperX->setSpeedInHz(speed);
+  stepperX->setAcceleration(speed>>2);
+  stepperX->setDelayToEnable(1000);
   // stepperX.setCurrentPosition(0);
   // stepperX.setMaxSpeed(SPEED);
   // stepperX.setAcceleration(ACCELERATION);
-
-  stepperY = AccelStepper(1, 6, 7);
+  stepperY = engine.stepperConnectToPin(8);
+  stepperY->setDirectionPin(9);
+  
   // stepperX.setCurrentPosition(0);
   // stepperY.setMaxSpeed(SPEED);
   // stepperY.setAcceleration(ACCELERATION);
 
-  ball.setMotors(&stepperX, &stepperY);
+  // ball.setMotors(stepperX, stepperY);
 
   pinMode(22, INPUT_PULLUP);
   pinMode(23, INPUT_PULLUP);
@@ -71,7 +79,8 @@ void setup()
   //     { ball.calibrationState[3] = true; },
   //     LOW);
 
-  ball.calibrate();
+  // ball.calibrate();
+  stepperX->moveTo(10000<<4);
 }
 
 // void loop()
