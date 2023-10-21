@@ -4,8 +4,10 @@
 
 void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
 {
-    this->_stepperA = _stepperA;
+     this->_stepperA = _stepperA;
+    this->_stepperA->setPinsInverted(true);
     this->_stepperB = _stepperB;
+    this->_stepperB->setPinsInverted(true);
 }
 
 void Ball::run()
@@ -30,7 +32,7 @@ void Ball::setposition(int x, int y, int speed)
     double rads = atan(((double)b - (double)this->_stepperB->currentPosition()) / ((double)a - (double)this->_stepperA->currentPosition()));
     
     Point currentPosition = this->getPosition();
-    this->lastAngle = atan(double(currentPosition.y - y) / double(currentPosition.x - x));
+    // this->lastAngle = atan(double(currentPosition.x - x) / double(currentPosition.y - y));
     // Separating the movement into its vectors
     // amodifier^2 + bmodifier^2 = 1^2
     // amodifier^2 + bmodifier^2 = 1
@@ -40,11 +42,11 @@ void Ball::setposition(int x, int y, int speed)
 
     this->_stepperA->moveTo(a);
     this->_stepperA->setMaxSpeed(amodifier * speed);
-    this->_stepperA->setAcceleration(ACCELERATION);
+    this->_stepperA->setAcceleration(amodifier * ACCELERATION);
 
     this->_stepperB->moveTo(b);
     this->_stepperB->setMaxSpeed(bmodifier * speed);
-    this->_stepperB->setAcceleration(ACCELERATION);
+    this->_stepperB->setAcceleration(bmodifier * ACCELERATION);
 }
 
 void Ball::stop()
@@ -88,8 +90,8 @@ void Ball::calibrate()
     // Initialize visited limit switch array
     this->initCalibration();
     
-    // Looking for the bottom edge
-    this->setposition(-10000,0,CALIBRATION_SPEED);
+    // Looking for the left edge
+    this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
     while (digitalRead(22))
     {
         this->run();
@@ -99,8 +101,8 @@ void Ball::calibrate()
     //this->postCalibrationStop();
 
 
-    // Looking for the left edge
-    this->setposition(this->getPosition().x,-10000,CALIBRATION_SPEED);
+    // Looking for the top edge
+    this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
     while (digitalRead(23))
     {
         this->run();
@@ -113,8 +115,8 @@ void Ball::calibrate()
     this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
     this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
 
-    // Looking for the right edge
-    this->setposition(0,10000, CALIBRATION_SPEED);
+    // Looking for the bottom edge
+    this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
     while (digitalRead(24))
     {
         this->run();
@@ -131,8 +133,8 @@ void Ball::calibrate()
 
     waitRun();
 
-    // Looking for the top edge
-    this->setposition(10000,this->getPosition().y,CALIBRATION_SPEED);
+    // Looking for the right edge
+    this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
     while (digitalRead(25))
     {
         this->run();
@@ -163,17 +165,11 @@ void Ball::runCenter()
 {
     this->center();
 
-    while (this->needsToMove())
-    {
-        this->run();
-    }
+    this->waitRun();
     
     this->stop();
 
-    while (this->needsToMove())
-    {
-        this->run();
-    }
+    this->waitRun();
 }
 
 void Ball::center()
@@ -189,39 +185,22 @@ bool Ball::needsToMove()
 
 void Ball::bounce()
 {
-    shootAngle(-this->lastAngle);
+    // float x = sin(this->lastAngle);
+    // float y = cos(this->lastAngle);
+
+    shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
 }
 
 void Ball::shootAngle(double rads)
 {
+    this->lastAngle = rads;
     Point position = this->getPosition();
 
-    bool shootingDown = rads > PI;
-    bool shootingLeft = rads > PI*0.5 && rads < PI*1.5;
-    
-    int verticalRange = shootingDown ? position.y : this->limits.y - position.y;
-
-    double adjacent = (shootingLeft ? position.x : this->limits.x - position.x);
     double tanrads = tan(rads);
+    bool SHOOT_LEFT = rads > PI*0.5 && rads < PI*1.5;
+
+    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) : position.x;
     double opposite = adjacent * tanrads;
-
-    bool overShoot = opposite > verticalRange;
-
-    if(overShoot)
-    {
-        opposite = verticalRange;
-        adjacent = opposite / tanrads;
-    }
-
-    if(shootingDown)
-    {
-        opposite *= -1;
-    }
-
-    if(shootingLeft)
-    {
-        adjacent *= -1;
-    }
-
-    this->setposition(position.x + adjacent, position.y + opposite);
+    
+    this->setposition(SHOOT_LEFT ? this->limits.x : 0,position.y + opposite);
 }

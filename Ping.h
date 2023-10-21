@@ -10,6 +10,7 @@ enum Player{
 enum GameState 
 {
     CALIBRATION,
+    STAND_BY,
     MATCH_INIT,
     MATCH_SERVE,
     MATCH_RUN,
@@ -21,7 +22,7 @@ class Ping
 public:
     GameState gameState = GameState::CALIBRATION;
     
-    void init();
+    void init(Ball *ball);
     void run();
     void calibrate();
     void initMatch();

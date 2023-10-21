@@ -72,11 +72,13 @@ public:
     /// @brief Shoots a ball in an angle and sets its position to the limits
     /// @param radians defines the angle of shooting
     void shootAngle(double radians);
+
+    void waitRun();
 private:
     AccelStepper *_stepperA = nullptr;
     AccelStepper *_stepperB = nullptr;
 
     void initCalibration();
     void postCalibrationStop();
-    void waitRun();
+    
 };
