@@ -12,8 +12,31 @@ void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
 
 void Ball::run()
 {
-    this->_stepperA->run();
-    this->_stepperB->run();
+    // int dx = abs(x1 - x0);
+    // int dy = abs(y1 - y0);
+    // int sx = x0 < x1 ? 1 : -1;
+    // int sy = y0 < y1 ? 1 : -1;
+    // int err = dx - dy;
+
+        // Todo here
+
+        if (_stepperA->distanceToGo() == 0 && _stepperA->distanceToGo() == 0) {
+            this->_stepperA->run();
+            this->_stepperB->run();
+        }
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            // x0 += sx;
+            this->_stepperA->run();
+        }
+        if (e2 < dx) {
+            err += dx;
+            // y0 += sy;
+            this->_stepperB->run();
+        }
+    
 }
 
 void Ball::setposition(int x, int y)
@@ -28,8 +51,17 @@ void Ball::setposition(int x, int y, int speed)
     int a = x + y;
     int b = x - y;
 
+    int a0 = this->_stepperA->currentPosition();
+    int b0 = this->_stepperB->currentPosition();
+
+    this->dx = abs(a - a0);
+    this->dy = abs(b - b0);
+    this->sx = a0 < a ? 1 : -1;
+    this->sy = b0 < b ? 1 : -1;
+    this->err = dx - dy;
+
     // Calculating the angle in radians fo the next relative movement
-    double rads = atan(((double)b - (double)this->_stepperB->currentPosition()) / ((double)a - (double)this->_stepperA->currentPosition()));
+    double rads = atan(((double)this->dy) / ((double)this->dx));
     
     Point currentPosition = this->getPosition();
     // this->lastAngle = atan(double(currentPosition.x - x) / double(currentPosition.y - y));
@@ -47,6 +79,9 @@ void Ball::setposition(int x, int y, int speed)
     this->_stepperB->moveTo(b);
     this->_stepperB->setMaxSpeed(bmodifier * speed);
     this->_stepperB->setAcceleration(bmodifier * ACCELERATION);
+
+
+    
 }
 
 void Ball::stop()

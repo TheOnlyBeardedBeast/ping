@@ -80,5 +80,11 @@ private:
 
     void initCalibration();
     void postCalibrationStop();
+
+    int dx;
+    int dy;
+    int sx;
+    int sy;
+    int err;
     
 };
