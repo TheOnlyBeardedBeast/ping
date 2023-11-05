@@ -9,6 +9,8 @@
 struct XYStepper {
     int step_pin;
     int dir_pin;
+    uint16_t step_mask;
+    uint16_t dir_mask;
     // TODO: store pin mask for step
     // TODO: store pin mask for dir
 };
@@ -27,6 +29,7 @@ typedef void (*VoidCallback)();
 
 class XYS {
     public:
+    GPIO_TypeDef *port;
     void setCallback(VoidCallback callback);
     #if defined(ARDUINO_GIGA)
     void setTimer(Portenta_H7_Timer *timer);

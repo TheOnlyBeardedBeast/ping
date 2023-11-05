@@ -1,4 +1,5 @@
 #include "AxisStepper.h"
+#include "GigaDigitalWriteFast.h"
 
 #define SPEED 12000
 #define ACCELERATION 4*12000
@@ -50,10 +51,10 @@ void AxisStepper::step()
         return;
     }
 
-    digitalWrite(this->stepper.dir_pin, this->direction > 0);
-    digitalWrite(this->stepper.step_pin, HIGH);
+    digitalWriteFast(this->stepper.dir_pin, this->direction > 0);
+    digitalWriteFast(this->stepper.step_pin, HIGH);
     delayMicroseconds(1);
-    digitalWrite(this->stepper.step_pin, LOW);
+    digitalWriteFast(this->stepper.step_pin, LOW);
     
     this->position++;
     this->distanceRun++;

@@ -1,4 +1,5 @@
 #include "XYS.h"
+#include "GigaDigitalWriteFast.h"
 
 #define SPEED 12000
 #define ACCELERATION 4*12000
@@ -25,14 +26,28 @@ void XYS::setTimer(DueTimer *timer)
 
 void XYS::init(int stepX, int dirX, int stepY, int dirY)
 {
+    
+    
+    GPIO_TypeDef* stepXPort = getPinPort(stepx);
+    GPIO_TypeDef* stepYPort = getPinPort(stepY);
+
+    if(stepXPort != stepYPort)
+    {
+        throw "Pins are not on a the same port.";
+    }
+
     this->stepperX.step_pin = stepX;
     this->stepperX.dir_pin = dirX;
+    this->stepperX.step_mask = getPinMask(stepX);
     // PB_7
     // GPIOB->ODR // output set
     // GPIOB->IDR // input read
 
     this->stepperY.step_pin = stepY;
     this->stepperY.dir_pin = dirY;
+    this->stepperY.step_mask = getPinMask(stepY);
+
+    this->port = stepXPort;
 };
 
 void XYS::step()
@@ -61,25 +76,37 @@ void XYS::step()
         return;
     }
 
+    uint16_t stepMask;
+
     int e2 = 2 * err;
     if (e2 > -dy)
     {
         err -= dy;
         this->x += sx;
-        digitalWrite(this->stepperX.dir_pin, this->sx > 0);
-        digitalWrite(this->stepperX.step_pin, HIGH);
-        delayMicroseconds(1);
-        digitalWrite(this->stepperX.step_pin, LOW);
+        digitalWriteFast(this->stepperX.dir_pin, this->sx > 0);
+        stepMask |= stepperX.step_mask;
+
+        // digitalWrite(this->stepperX.dir_pin, this->sx > 0);
+        // digitalWrite(this->stepperX.step_pin, HIGH);
+        // delayMicroseconds(1);
+        // digitalWrite(this->stepperX.step_pin, LOW);
     }
     if (e2 < dx)
     {
         err += dx;
         this->y += sy;
-        digitalWrite(this->stepperY.dir_pin, this->sy > 0);
-        digitalWrite(this->stepperY.step_pin, HIGH);
-        delayMicroseconds(1);
-        digitalWrite(this->stepperY.step_pin, LOW);
+        digitalWriteFast(this->stepperY.dir_pin, this->sy > 0);
+        stepMask |= stepperY.step_mask;
+
+        // digitalWrite(this->stepperY.dir_pin, this->sy > 0);
+        // digitalWrite(this->stepperY.step_pin, HIGH);
+        // delayMicroseconds(1);
+        // digitalWrite(this->stepperY.step_pin, LOW);
     }
+
+    digitalToggleMask(stepMask,this->port);
+    delayMicroseconds(1);
+    digitalToggleMask(stepMask,this->port);
 
     this->distanceRun++;
 
