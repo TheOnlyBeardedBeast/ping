@@ -28,7 +28,7 @@ void XYS::init(int stepX, int dirX, int stepY, int dirY)
 {
     
     
-    GPIO_TypeDef* stepXPort = getPinPort(stepx);
+    GPIO_TypeDef* stepXPort = getPinPort(stepX);
     GPIO_TypeDef* stepYPort = getPinPort(stepY);
 
     if(stepXPort != stepYPort)
