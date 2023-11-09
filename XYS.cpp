@@ -1,8 +1,8 @@
 #include "XYS.h"
 #include "GigaDigitalWriteFast.h"
 
-#define SPEED 12000
-#define ACCELERATION 4*12000
+#define SPEED 5000
+#define ACCELERATION 10*5000
 #define TICKS 1000000
 
 void XYS::setCallback(VoidCallback callback)
@@ -31,14 +31,15 @@ void XYS::init(int stepX, int dirX, int stepY, int dirY)
     GPIO_TypeDef* stepXPort = getPinPort(stepX);
     GPIO_TypeDef* stepYPort = getPinPort(stepY);
 
-    if(stepXPort != stepYPort)
-    {
-        throw "Pins are not on a the same port.";
-    }
+    // if(stepXPort != stepYPort)
+    // {
+    //     throw "Pins are not on a the same port.";
+    // }
 
     this->stepperX.step_pin = stepX;
     this->stepperX.dir_pin = dirX;
     this->stepperX.step_mask = getPinMask(stepX);
+    // PB_7
     // PB_7
     // GPIOB->ODR // output set
     // GPIOB->IDR // input read
@@ -72,6 +73,7 @@ void XYS::step()
 
         this->resetBresenham();
         this->resetRamping();
+        this->moving = false;
         
         return;
     }
@@ -83,10 +85,10 @@ void XYS::step()
     {
         err -= dy;
         this->x += sx;
-        digitalWriteFast(this->stepperX.dir_pin, this->sx > 0);
+        digitalWriteFast(this->stepperX.dir_pin, this->sx > 0 ? HIGH : LOW);
         stepMask |= stepperX.step_mask;
 
-        // digitalWrite(this->stepperX.dir_pin, this->sx > 0);
+        // digitalWrite(this->stepperX.dir_pin, this->sx > 0 ? HIGH : LOW);
         // digitalWrite(this->stepperX.step_pin, HIGH);
         // delayMicroseconds(1);
         // digitalWrite(this->stepperX.step_pin, LOW);
@@ -95,7 +97,7 @@ void XYS::step()
     {
         err += dx;
         this->y += sy;
-        digitalWriteFast(this->stepperY.dir_pin, this->sy > 0);
+        digitalWriteFast(this->stepperY.dir_pin, this->sy > 0 ? HIGH : LOW);
         stepMask |= stepperY.step_mask;
 
         // digitalWrite(this->stepperY.dir_pin, this->sy > 0);
@@ -105,7 +107,7 @@ void XYS::step()
     }
 
     digitalToggleMask(stepMask,this->port);
-    delayMicroseconds(1);
+    delayMicroseconds(3);
     digitalToggleMask(stepMask,this->port);
 
     this->distanceRun++;
@@ -127,7 +129,7 @@ void XYS::step()
     }
 
     #if defined(ARDUINO_GIGA)
-    this->timer->setInterval(this->delayPeriod, this->callback);
+    this->timer->setInterval(this->delayPeriod-3, this->callback);
     this->speed = TICKS / this->delayPeriod;
     #endif
     #if defined(ARDUINO_SAM_DUE)
@@ -138,6 +140,7 @@ void XYS::step()
 
 void XYS::setPosition(long x, long y)
 {
+    this->moving = true;
     // this->targetX = x;
     // this->targetY = y;
 

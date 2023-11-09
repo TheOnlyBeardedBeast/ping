@@ -4,7 +4,7 @@
 
 void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
 {
-     this->_stepperA = _stepperA;
+    this->_stepperA = _stepperA;
     this->_stepperA->setPinsInverted(true);
     this->_stepperB = _stepperB;
     this->_stepperB->setPinsInverted(true);
@@ -12,14 +12,8 @@ void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
 
 void Ball::run()
 {
-    // int dx = abs(x1 - x0);
-    // int dy = abs(y1 - y0);
-    // int sx = x0 < x1 ? 1 : -1;
-    // int sy = y0 < y1 ? 1 : -1;
-    // int err = dx - dy;
 
-        // Todo here
-
+    #if (LINE)
         if (_stepperA->distanceToGo() == 0 && _stepperA->distanceToGo() == 0) {
             this->_stepperA->run();
             this->_stepperB->run();
@@ -35,7 +29,11 @@ void Ball::run()
             err += dx;
             // y0 += sy;
             this->_stepperB->run();
-        }
+        }                                                                                               
+    #else
+        this->_stepperA->run();
+        this->_stepperB->run();
+    #endif
     
 }
 
@@ -56,12 +54,17 @@ void Ball::setposition(int x, int y, int speed)
 
     this->dx = abs(a - a0);
     this->dy = abs(b - b0);
-    this->sx = a0 < a ? 1 : -1;
-    this->sy = b0 < b ? 1 : -1;
-    this->err = dx - dy;
+    
+    #if (LINE == 1)
+        this->sx = a0 < a ? 1 : -1;
+        this->sy = b0 < b ? 1 : -1;
+        this->err = dx - dy;
+    #endif
 
     // Calculating the angle in radians fo the next relative movement
-    double rads = atan(((double)this->dy) / ((double)this->dx));
+    #if (LINE == 0)
+        double rads = atan(((double)this->dy) / ((double)this->dx));
+    #endif
     
     Point currentPosition = this->getPosition();
     // this->lastAngle = atan(double(currentPosition.x - x) / double(currentPosition.y - y));
@@ -69,19 +72,25 @@ void Ball::setposition(int x, int y, int speed)
     // amodifier^2 + bmodifier^2 = 1^2
     // amodifier^2 + bmodifier^2 = 1
     // (amodifier*speed)^2 + (bmodifier*speed)^2 = speed^2
-    double amodifier = cos(rads);
-    double bmodifier = sin(rads);
+    #if(LINE == 0)
+        double amodifier = cos(rads);
+        double bmodifier = sin(rads);
+    #endif
 
     this->_stepperA->moveTo(a);
-    this->_stepperA->setMaxSpeed(amodifier * speed);
-    this->_stepperA->setAcceleration(amodifier * ACCELERATION);
-
     this->_stepperB->moveTo(b);
-    this->_stepperB->setMaxSpeed(bmodifier * speed);
-    this->_stepperB->setAcceleration(bmodifier * ACCELERATION);
 
-
-    
+    #if (LINE == 1)
+        this->_stepperA->setMaxSpeed(speed);
+        this->_stepperA->setAcceleration(ACCELERATION);
+        this->_stepperB->setMaxSpeed(speed);
+        this->_stepperB->setAcceleration(ACCELERATION);
+    # else
+        this->_stepperA->setMaxSpeed(amodifier * speed);
+        this->_stepperA->setAcceleration(amodifier * ACCELERATION);
+        this->_stepperB->setMaxSpeed(bmodifier * speed);
+        this->_stepperB->setAcceleration(bmodifier * ACCELERATION);
+    #endif
 }
 
 void Ball::stop()

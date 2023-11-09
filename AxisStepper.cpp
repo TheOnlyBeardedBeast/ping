@@ -51,7 +51,7 @@ void AxisStepper::step()
         return;
     }
 
-    digitalWriteFast(this->stepper.dir_pin, this->direction > 0);
+    digitalWriteFast(this->stepper.dir_pin, this->direction > 0 ? HIGH : LOW);
     digitalWriteFast(this->stepper.step_pin, HIGH);
     delayMicroseconds(1);
     digitalWriteFast(this->stepper.step_pin, LOW);

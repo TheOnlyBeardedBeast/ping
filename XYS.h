@@ -61,6 +61,7 @@ class XYS {
     void startTimer(float period);
 
 
+    volatile bool moving = false;
     StepDirection direction = StepDirection::FORWARD;
     // long targetX = 0;
     // long targetY = 0;
@@ -87,7 +88,28 @@ class XYS {
         this->accelDistance = 0;
         this->deccelDistance = 0;
         this->multiplier = 0;
-        float delayPeriod = 0;
+        this->delayPeriod = 0;
+        this->speed = 0;
+    }
+
+    void printRamp()
+    {
+        Serial.println("Acceleration:");
+        Serial.println(this->acceleration);
+        Serial.println("Distance:");
+        Serial.println(this->distance);
+        Serial.println("DistanceRun:");
+        Serial.println(this->distanceRun);
+        Serial.println("Acceldistance:");
+        Serial.println(this->accelDistance);
+        Serial.println("Decceldistance:");
+        Serial.println(this->deccelDistance);
+        Serial.println("Multiplier:");
+        Serial.println(this->multiplier);
+        Serial.println("DelayPeriod:");
+        Serial.println(this->delayPeriod);
+        Serial.println("Speed:");
+        Serial.println(this->speed);
     }
 
 
@@ -107,6 +129,20 @@ class XYS {
         this->sy = 0;
         this->err = 0;
     };
+
+    void printBresenham()
+    {
+        Serial.println("Dx:");
+        Serial.println(this->dx);
+        Serial.println("dy:");
+        Serial.println(this->dy);
+        Serial.println("sx:");
+        Serial.println(this->sx);
+        Serial.println("sy:");
+        Serial.println(this->sy);
+        Serial.println("err:");
+        Serial.println(this->err);
+    }
 
 
     // Timer

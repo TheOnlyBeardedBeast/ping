@@ -83,8 +83,11 @@ private:
 
     int dx;
     int dy;
-    int sx;
-    int sy;
-    int err;
+    
+    #if (LINE == 1)
+        int sx;
+        int sy;
+        int err;
+    #endif
     
 };
