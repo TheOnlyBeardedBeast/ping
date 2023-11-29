@@ -6,12 +6,10 @@
     #include "Portenta_H7_TimerInterrupt.h"
 #endif
 
-
-
-typedef void (*VoidCallback)();
-
 class AxisStepper {
     public:
+
+    typedef void (*VoidCallback)();
 
     struct XYStepper {
     int step_pin;
@@ -34,6 +32,7 @@ class AxisStepper {
     #endif
     void init(int step,int dir);
     void step();
+    void singleStep(StepDirection direction);
     void setPosition(long newDistance);
     long getPosition() 
     {
@@ -44,9 +43,15 @@ class AxisStepper {
         this->position = newPosition;
     }
     // void setPosition(long x, long y, int speed);
-    bool isRunning();
+    bool needsMoving();
     void stop();
     void forceStop();
+    void setSpeed(long speed);
+
+    volatile bool _isRunning;
+    bool isRunning() {
+        return this->_isRunning;
+    }
 
     VoidCallback callback;
     void startTimer(float period);
@@ -76,6 +81,7 @@ class AxisStepper {
         this->deccelDistance = 0;
         this->multiplier = 0;
         float delayPeriod = 0;
+        this->speed = 0;
     }
 
 

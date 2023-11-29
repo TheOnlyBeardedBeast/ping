@@ -1,4 +1,4 @@
-#include <AccelStepper.h>
+#include "XYS.h"
 
 struct Point
 {
@@ -20,14 +20,10 @@ public:
     Point limits;
 
     /// @brief Sets the motors which moves the balls
-    /// @param _stepperA 
-    /// @param _stepperB 
-    void setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB);
+    /// @param _steppers
+    void setMotors(XYS *_steppers);
 
     void init();
-
-    /// @brief Call the run function for each stepper which moves the ball
-    void run();
 
     /// @brief Sets an absolute position to go to with the default speed
     /// @param x 
@@ -75,8 +71,7 @@ public:
 
     void waitRun();
 private:
-    AccelStepper *_stepperA = nullptr;
-    AccelStepper *_stepperB = nullptr;
+    XYS *_steppers = nullptr;
 
     void initCalibration();
     void postCalibrationStop();

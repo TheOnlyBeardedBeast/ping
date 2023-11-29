@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include <AccelStepper.h>
 #include "DirectionSmoother.h"
+#include "AxisStepper.h"
 
 enum Direction
 {
@@ -33,12 +33,11 @@ public:
 
     // methods
     void initializeEncoder(byte A, byte B);
-    void initializeStepper(AccelStepper* stepper);
+    void initializeStepper(AxisStepper* stepper);
     void initCalibration();
     void runCalibration();
-    void run();
-    void isrA();
-    void isrB();
+    void recalculateSpeed();
+    void isr();
     void stop();
     void center();
     void runCenter();
@@ -53,14 +52,14 @@ private:
     byte _pinB;
     // RoReg _registerB;
     // int _bitMaskB;
-    AccelStepper *_stepper = nullptr;
+    AxisStepper *_stepper = nullptr;
     bool running = false;
     DirectionSmoother smoother;
 
-    unsigned int _pulseCount = 0;
-    unsigned long _lastTime = 0;
-    unsigned long _currentTime = 0;
-    unsigned long _deltaTime = 0;
+    // unsigned int _pulseCount = 0;
+    // unsigned long _lastTime = 0;
+    // unsigned long _currentTime = 0;
+    // unsigned long _deltaTime = 0;
 
     // methods
 
@@ -68,5 +67,3 @@ private:
     int readB();
     void calibratePosition(CalibrationPosition postion);
 };
-
-AccelStepper* initializeStepper(byte STEP, byte DIR);

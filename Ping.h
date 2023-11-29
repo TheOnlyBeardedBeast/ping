@@ -23,7 +23,6 @@ public:
     GameState gameState = GameState::CALIBRATION;
     
     void init(Ball *ball);
-    void run();
     void calibrate();
     void initMatch();
     void serveMatch();

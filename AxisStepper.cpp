@@ -26,16 +26,26 @@ void AxisStepper::setTimer(DueTimer *timer)
 
 void AxisStepper::init(int step, int dir)
 {
+    pinMode(step,OUTPUT);
     this->stepper.step_pin = step;
+    pinMode(dir,OUTPUT);
     this->stepper.dir_pin = dir;
     // PB_7
     // GPIOB->ODR // output set
     // GPIOB->IDR // input read
 };
 
+void AxisStepper::singleStep(StepDirection direction)
+{
+    digitalWriteFast(this->stepper.dir_pin, direction > 0 ? HIGH : LOW);
+    digitalWriteFast(this->stepper.step_pin, HIGH);
+    delayMicroseconds(3);
+    digitalWriteFast(this->stepper.step_pin, LOW);
+}
+
 void AxisStepper::step()
 {
-    if (!this->isRunning())
+    if (!this->needsMoving())
     {
         #if defined(ARDUINO_GIGA)
             this->timer->stopTimer();
@@ -47,13 +57,14 @@ void AxisStepper::step()
         #endif
 
         this->resetRamping();
+        this->_isRunning = false;
         
         return;
     }
 
     digitalWriteFast(this->stepper.dir_pin, this->direction > 0 ? HIGH : LOW);
     digitalWriteFast(this->stepper.step_pin, HIGH);
-    delayMicroseconds(1);
+    delayMicroseconds(3);
     digitalWriteFast(this->stepper.step_pin, LOW);
     
     this->position++;
@@ -85,6 +96,7 @@ void AxisStepper::step()
 
 void AxisStepper::setPosition(long newDistance)
 {
+    this->_isRunning = true;
     // Leib ramp
     this->distance = this->distance - newDistance;
     this->distanceRun = 0;
@@ -155,9 +167,63 @@ void AxisStepper::forceStop(){
     #endif
 
     this->resetRamping();
+}
+void AxisStepper::setSpeed(long speed){
+    if(!this->isRunning())
+    {
+        return;
+    }
+    // Leib ramp
+    // this->distance = this->distance - newDistance;
+    // this->distanceRun = 0;
+    // int halfDistance = this->distance >> 1;
+
+    // float acc2 = (float)(ACCELERATION << 1);
+    // float accDistance = (float)((SPEED * SPEED) / acc2);
+    // if (this->speed == 0)
+    // {
+    //     this->accelDistance = accDistance;
+    //     // this->deccelDistance = accDistance;
+
+    //     if (this->accelDistance >= halfDistance)
+    //     {
+    //         this->accelDistance = halfDistance;
+    //         this->deccelDistance = halfDistance;
+    //     }
+    //     else
+    //     {
+    //         this->deccelDistance = this->accelDistance;
+    //     }
+    // }
+    // else
+    // {
+    //     int speedPow = this->speed * this->speed;
+    //     this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 2;
+    //     this->deccelDistance = accDistance;
+
+    //     if (this->deccelDistance + this->accelDistance >= this->distance)
+    //     {
+    //         if (this->accelDistance < halfDistance)
+    //         {
+    //             this->accelDistance = this->accelDistance;
+    //             this->deccelDistance = this->distance - this->accelDistance;
+    //         }
+    //         else
+    //         {
+    //             this->accelDistance = halfDistance;
+    //             this->deccelDistance = halfDistance;
+    //         }
+    //     }
+    // }
+
+    // this->multiplier = (float)(ACCELERATION) / (float)((float)TICKS * (float)TICKS);
+    // this->speed = sqrtf(acc2);
+    // // original TICKS/sqrtf(acc2)
+    // this->delayPeriod = TICKS / this->speed;
+    // this->startTimer(this->delayPeriod);
 };
 
-bool AxisStepper::isRunning()
+bool AxisStepper::needsMoving()
 {
     return this->distanceRun != this->distance;
 };

@@ -54,7 +54,7 @@ class XYS {
         this->y = y;
     };
     // void setPosition(long x, long y, int speed);
-    bool isRunning();
+    bool needsMoving();
     void stop();
 
     VoidCallback callback;
@@ -62,6 +62,9 @@ class XYS {
 
 
     volatile bool moving = false;
+    volatile bool isMoving(){
+        return this->moving;
+    }
     StepDirection direction = StepDirection::FORWARD;
     // long targetX = 0;
     // long targetY = 0;
@@ -143,6 +146,9 @@ class XYS {
         Serial.println("err:");
         Serial.println(this->err);
     }
+
+    void stepLeft();
+    void stepRight();
 
 
     // Timer

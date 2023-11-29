@@ -70,16 +70,8 @@ void Ping::serveMatch()
     // this->run();
 }
 
-void Ping::run()
-{
-    this->ball->run();
-    // this->paddles[0]->run();
-    // this->paddles[1]->run();
-}
-
 void Ping::runMatch()
 {
-    this->run();
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
@@ -122,6 +114,4 @@ void Ping::runMatch()
         // this->gameState = GameState::MATCH_END;
     // }
     // TODO: paddle hit
-
-    this->run();
 }

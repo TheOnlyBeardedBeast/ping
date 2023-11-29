@@ -1,8 +1,8 @@
 #include "XYS.h"
 #include "GigaDigitalWriteFast.h"
 
-#define SPEED 5000
-#define ACCELERATION 10*5000
+#define SPEED 400
+#define ACCELERATION 10*4000
 #define TICKS 1000000
 
 void XYS::setCallback(VoidCallback callback)
@@ -26,8 +26,6 @@ void XYS::setTimer(DueTimer *timer)
 
 void XYS::init(int stepX, int dirX, int stepY, int dirY)
 {
-    
-    
     GPIO_TypeDef* stepXPort = getPinPort(stepX);
     GPIO_TypeDef* stepYPort = getPinPort(stepY);
 
@@ -60,7 +58,7 @@ void XYS::step()
     //     return;
     // }
 
-    if (!this->isRunning())
+    if (!this->needsMoving())
     {
         #if defined(ARDUINO_GIGA)
             this->timer->stopTimer();
@@ -208,13 +206,13 @@ void XYS::stop(){
     this->accelDistance = SPEED * SPEED - speedPow / (ACCELERATION<<1);
     this->deccelDistance = this->accelDistance;
 
-    if(this->axis == MainAxis::X)
-    {
+    // if(this->axis == MainAxis::X)
+    // {
         this->distance = this->distanceRun + this->deccelDistance;
-    }
+    // }
 };
 
-bool XYS::isRunning()
+bool XYS::needsMoving()
 {
     return this->distanceRun != this->distance;
 };
@@ -229,3 +227,30 @@ void XYS::startTimer(float frequency)
     #endif
     
 };
+
+void XYS::stepLeft()
+{
+    uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
+
+    digitalWriteFast(stepperX.dir_pin,LOW);
+    digitalWriteFast(stepperY.dir_pin,LOW);
+    
+    digitalToggleMask(stepMask,this->port);
+    delayMicroseconds(3);
+    digitalToggleMask(stepMask,this->port);
+    this->x--;
+}
+
+void XYS::stepRight()
+{
+    uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
+
+    digitalWriteFast(stepperX.dir_pin,HIGH);
+    digitalWriteFast(stepperY.dir_pin,HIGH);
+    
+    digitalToggleMask(stepMask,this->port);
+    delayMicroseconds(3);
+    digitalToggleMask(stepMask,this->port);
+    this->x++;
+}
+
