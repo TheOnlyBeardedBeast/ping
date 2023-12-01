@@ -6,18 +6,9 @@ Ball ball;
 Ping ping;
 
 XYS xyStepper;
-#if defined(ARDUINO_GIGA)
 Portenta_H7_Timer xyTimer(TIM15);
-#endif
-#if defined(ARDUINO_SAM_DUE)
-DueTimer xyTimer = DueTimer(0);
-#endif
 
-
-void ballTimerIsr()
-{
-  xyStepper.step();
-}
+int count = 0;
 
 void setup()
 { 
@@ -26,16 +17,16 @@ void setup()
   pinMode(28,OUTPUT);
   pinMode(29,OUTPUT);
 
+  pinMode(30,INPUT_PULLUP);
   pinMode(32,INPUT_PULLUP);
-  pinMode(33,INPUT_PULLUP);
   pinMode(34,INPUT_PULLUP);
-  pinMode(35,INPUT_PULLUP);
+  pinMode(36,INPUT_PULLUP);
 
-  
   xyStepper.init(26,27,28,29);
   xyStepper.setTimer(&xyTimer);
-  xyStepper.setCallback(ballTimerIsr);
-  delay(2000);
+
+  delay(5000);
+  randomSeed(analogRead(0));
 
   ball.setMotors(&xyStepper);
   ping.init(&ball);
@@ -43,23 +34,23 @@ void setup()
 
 void loop()
 {
-  switch (ping.gameState)
-  {
-  case GameState::CALIBRATION:
-    ping.calibrate();
-    return;
-  case GameState::MATCH_INIT:
-    ping.initMatch();
-    return;
-  case GameState::MATCH_SERVE:
-    ping.serveMatch();
-    return;
-  case GameState::MATCH_RUN:
-    ping.runMatch();
-    return;
-  default:
-    return;
-  }
+  // switch (ping.gameState)
+  // {
+  // case GameState::CALIBRATION:
+  //   ping.calibrate();
+  //   return;
+  // case GameState::MATCH_INIT:
+  //   ping.initMatch();
+  //   return;
+  // case GameState::MATCH_SERVE:
+  //   ping.serveMatch();
+  //   return;
+  // case GameState::MATCH_RUN:
+  //   ping.runMatch();
+  //   return;
+  // default:
+  //   return;
+  // }
 }
 
 

@@ -1,10 +1,6 @@
 #include <Arduino.h>
-#if defined(ARDUINO_SAM_DUE)
-    #include <DueTimer.h>
-#endif
-#if defined(ARDUINO_GIGA)
-    #include "Portenta_H7_TimerInterrupt.h"
-#endif
+#include "Portenta_H7_TimerInterrupt.h"
+
 
 struct XYStepper {
     int step_pin;
@@ -25,18 +21,10 @@ enum MainAxis {
     Y
 };
 
-typedef void (*VoidCallback)();
-
 class XYS {
     public:
     GPIO_TypeDef *port;
-    void setCallback(VoidCallback callback);
-    #if defined(ARDUINO_GIGA)
     void setTimer(Portenta_H7_Timer *timer);
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    void setTimer(DueTimer *timer);
-    #endif
     void init(int stepX,int dirX,int stepY,int dirY);
     void step();
     void setPosition(long x, long y);
@@ -62,7 +50,7 @@ class XYS {
 
 
     volatile bool moving = false;
-    volatile bool isMoving(){
+    bool isMoving(){
         return this->moving;
     }
     StepDirection direction = StepDirection::FORWARD;
@@ -150,13 +138,9 @@ class XYS {
     void stepLeft();
     void stepRight();
 
-
     // Timer
-    #if defined(ARDUINO_GIGA)
-        Portenta_H7_Timer *timer;
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-        DueTimer *timer;
-    #endif
-    
+    Portenta_H7_Timer *timer;
+
+    static XYS * instance = nullptr;
+    static void ballIsr();
 };
