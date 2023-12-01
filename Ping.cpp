@@ -30,6 +30,7 @@ void Ping::initMatch()
 
     ball->waitRun();
 
+    Paddle::attachPaddles();
     this->gameState = GameState::MATCH_SERVE;
     // this->gameState = GameState::MATCH_SERVE;
 }
@@ -92,6 +93,7 @@ void Ping::runMatch()
      if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
     {
         this->gameState = GameState::MATCH_END;
+        Paddle::detachPaddles();
     }
     // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
     // {
