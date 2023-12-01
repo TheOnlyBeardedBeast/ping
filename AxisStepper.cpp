@@ -10,18 +10,12 @@ void AxisStepper::setCallback(VoidCallback callback)
     this->callback = callback;
 }
 
-#if defined(ARDUINO_GIGA)
+
 void AxisStepper::setTimer(Portenta_H7_Timer *timer)
 {
     this->timer = timer;
 };
-#endif
-#if defined(ARDUINO_SAM_DUE)
-void AxisStepper::setTimer(DueTimer *timer)
-{
-    this->timer = timer;
-};
-#endif
+
 
 
 void AxisStepper::init(int step, int dir)
@@ -47,14 +41,9 @@ void AxisStepper::step()
 {
     if (!this->needsMoving())
     {
-        #if defined(ARDUINO_GIGA)
             this->timer->stopTimer();
             this->timer->detachInterrupt();
-        #endif
-        #if defined(ARDUINO_SAM_DUE)
-            this->timer->stop();
-            this->timer->detachInterrupt();
-        #endif
+       
 
         this->resetRamping();
         this->_isRunning = false;
@@ -84,14 +73,8 @@ void AxisStepper::step()
         return;
     }
 
-    #if defined(ARDUINO_GIGA)
     this->timer->setInterval(this->delayPeriod, this->callback);
     this->speed = TICKS / this->delayPeriod;
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    this->timer->stop();
-    this->timer->setPeriod(this->delayPeriod).start();
-    #endif
 };
 
 void AxisStepper::setPosition(long newDistance)
@@ -157,14 +140,8 @@ void AxisStepper::stop(){
     
 }
 void AxisStepper::forceStop(){
-    #if defined(ARDUINO_GIGA)
-            this->timer->stopTimer();
-            this->timer->detachInterrupt();
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-        this->timer->stop();
-        this->timer->detachInterrupt();
-    #endif
+    this->timer->stopTimer();
+    this->timer->detachInterrupt();
 
     this->resetRamping();
 }
@@ -230,11 +207,5 @@ bool AxisStepper::needsMoving()
 
 void AxisStepper::startTimer(float frequency)
 {
-    #if defined(ARDUINO_GIGA)
     this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    this->timer->attachInterrupt(this->callback).setPeriod(this->delayPeriod).start();
-    #endif
-    
 };
