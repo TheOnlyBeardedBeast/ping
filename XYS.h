@@ -85,21 +85,21 @@ class XYS {
 
     void printRamp()
     {
-        Serial.println("Acceleration:");
+        Serial.print("Acceleration:");
         Serial.println(this->acceleration);
-        Serial.println("Distance:");
+        Serial.print("Distance:");
         Serial.println(this->distance);
-        Serial.println("DistanceRun:");
+        Serial.print("DistanceRun:");
         Serial.println(this->distanceRun);
-        Serial.println("Acceldistance:");
+        Serial.print("Acceldistance:");
         Serial.println(this->accelDistance);
-        Serial.println("Decceldistance:");
+        Serial.print("Decceldistance:");
         Serial.println(this->deccelDistance);
-        Serial.println("Multiplier:");
+        Serial.print("Multiplier:");
         Serial.println(this->multiplier);
-        Serial.println("DelayPeriod:");
+        Serial.print("DelayPeriod:");
         Serial.println(this->delayPeriod);
-        Serial.println("Speed:");
+        Serial.print("Speed:");
         Serial.println(this->speed);
     }
 
@@ -123,15 +123,15 @@ class XYS {
 
     void printBresenham()
     {
-        Serial.println("Dx:");
+        Serial.print("Dx:");
         Serial.println(this->dx);
-        Serial.println("dy:");
+        Serial.print("dy:");
         Serial.println(this->dy);
-        Serial.println("sx:");
+        Serial.print("sx:");
         Serial.println(this->sx);
-        Serial.println("sy:");
+        Serial.print("sy:");
         Serial.println(this->sy);
-        Serial.println("err:");
+        Serial.print("err:");
         Serial.println(this->err);
     }
 
