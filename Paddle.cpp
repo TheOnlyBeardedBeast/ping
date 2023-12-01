@@ -66,36 +66,28 @@ void Paddle::runCenter()
     while (this->_stepper->isRunning());
 }
 
-void Paddle::isr()
+void Paddle::readEncoder()
 {
     if (this->readA() == this->readB())
     {
         this->direction = CW;
         smoother.smoothDirection(CW);
         this->_stepper->singleStep(AxisStepper::StepDirection::FORWARD);
-        if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
-        {
-            // this->_stepper->moveTo(10000);
-        }
+        // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
+        // {
+        //     // this->_stepper->moveTo(10000);
+        // }
     }
     else
     {
         this->direction = CCW;
         smoother.smoothDirection(CCW);
         this->_stepper->singleStep(AxisStepper::StepDirection::BACKWARD);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
-        {
-            // this->_stepper->moveTo(-10000);
-        }
+        // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
+        // {
+        //     // this->_stepper->moveTo(-10000);
+        // }
     }
-
-    // this->_pulseCount++;
-    // this->_currentTime = millis();
-    // if (_currentTime - _lastTime >= SAMPLING_TIME)
-    // {
-    //     this->_deltaTime = _currentTime - _lastTime;
-    //     this->_lastTime = _currentTime;
-    // }
 }
 
 void Paddle::stop()
@@ -123,4 +115,16 @@ long Paddle::getPosition()
 bool Paddle::needsToMove()
 {
     this->_stepper->isRunning();
+}
+
+static void Paddle::attachPaddles()
+{
+    attachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinA),Paddle::instances[0]->readEncoder(),PinStatus::RISING);
+    attachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinA),Paddle::instances[1]->readEncoder(),PinStatus::RISING);
+}
+
+static void Paddle::detachPaddles()
+{
+    detachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinA));
+    detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinA));
 }

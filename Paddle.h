@@ -37,12 +37,16 @@ public:
     void initCalibration();
     void runCalibration();
     void recalculateSpeed();
-    void isr();
+    void readEncoder();
     void stop();
     void center();
     void runCenter();
     long getPosition();
     bool needsToMove();
+
+    static Paddle * instances[2] = [nullptr,nullptr];
+    static void attachPaddles();
+    static void detachPaddles();
 
 private:
     // variables
