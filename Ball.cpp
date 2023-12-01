@@ -91,29 +91,41 @@ void Ball::waitRun()
 
 void Ball::calibrate()
 {
+    
+    // #if (DEBUG == 1)
+    //         Serial.println("calibration start");
+    //     #endif
     // Initialize visited limit switch array
     this->initCalibration();
     
     // Looking for the left edge
+    // -10000,0 = -10000,-10000
     this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
-    while (digitalRead(32))
-    {
-        this->waitRun();
-    }
+    while (digitalRead(30));
+    // {
+    //     // #if DEBUG == 1
+    //     //     Serial.println("Wait left");
+    //     // #endif
+    // }
 
     this->stop();
-    //this->postCalibrationStop();
+    // this->postCalibrationStop();
+    // delay(1000);
 
 
     // Looking for the top edge
+    // -1000,-10000 = -11000, 9000
     this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
-    while (digitalRead(33))
-    {
-        this->waitRun();
-    }
+    while (digitalRead(32));
+    // {
+    //     // #if (DEBUG == 1)
+    //     //     Serial.println("Wait top");
+    //     // #endif
+    // }
 
     this->stop();
-    //this->postCalibrationStop();
+    // this->postCalibrationStop();
+    // delay(1000);
 
     // If we have the left and the bottom edge we can set our origin point
     // this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
@@ -121,14 +133,18 @@ void Ball::calibrate()
     this->_steppers->setCurrentPosition(-SAFEZONE_WIDTH,-SAFEZONE_WIDTH);
 
     // Looking for the bottom edge
+    // 0, 10000
     this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
-    while (digitalRead(34))
-    {
-        this->waitRun();
-    }
+    while (digitalRead(34));
+    // {
+    //     // #if (DEBUG == 1)
+    //     //     Serial.println("Wait bottom");
+    //     // #endif
+    // }
 
     this->stop();
-    //this->postCalibrationStop();
+    // this->postCalibrationStop();
+    // delay(1000);
 
     Point midCalibrationPosition = this->getPosition();
     this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
@@ -140,13 +156,17 @@ void Ball::calibrate()
 
     // Looking for the right edge
     this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
-    while (digitalRead(35))
-    {
-        this->waitRun();
-    }
+    while (digitalRead(36));
+    // {
+    //     // #if (DEBUG == 1)
+    //     //     Serial.println("Wait right");
+    //     // #endif
+        
+    // }
 
     this->stop();
-    //this->postCalibrationStop();
+    // this->postCalibrationStop();
+    // delay(1000);
 
     // Setting the max limit for the axes
     Point position = this->getPosition();
