@@ -117,13 +117,65 @@ bool Paddle::needsToMove()
     this->_stepper->isRunning();
 }
 
-static void Paddle::attachPaddles()
+void Paddle::isrReadEncoder0()
 {
-    attachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinA),Paddle::instances[0]->readEncoder(),PinStatus::RISING);
-    attachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinA),Paddle::instances[1]->readEncoder(),PinStatus::RISING);
+    if (Paddle::instances[0]->readA() == Paddle::instances[0]->readB())
+    {
+        Paddle::instances[0]->direction = CW;
+        // smoother.smoothDirection(CW);
+        Paddle::instances[0]->_stepper->singleStep(AxisStepper::StepDirection::FORWARD);
+        // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
+        // {
+        //     // this->_stepper->moveTo(10000);
+        // }
+    }
+    else
+    {
+        Paddle::instances[0]->direction = CCW;
+        // smoother.smoothDirection(CCW);
+        Paddle::instances[0]->_stepper->singleStep(AxisStepper::StepDirection::BACKWARD);
+        // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
+        // {
+        //     // this->_stepper->moveTo(-10000);
+        // }
+    }
 }
 
-static void Paddle::detachPaddles()
+void Paddle::isrReadEncoder1()
+{
+    if (Paddle::instances[1]->readA() == Paddle::instances[1]->readB())
+    {
+        Paddle::instances[1]->direction = CW;
+        // smoother.smoothDirection(CW);
+        Paddle::instances[1]->_stepper->singleStep(AxisStepper::StepDirection::FORWARD);
+        // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
+        // {
+        //     // this->_stepper->moveTo(10000);
+        // }
+    }
+    else
+    {
+        Paddle::instances[1]->direction = CCW;
+        // smoother.smoothDirection(CCW);
+        Paddle::instances[1]->_stepper->singleStep(AxisStepper::StepDirection::BACKWARD);
+        // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
+        // {
+        //     // this->_stepper->moveTo(-10000);
+        // }
+    }
+}
+
+void Paddle::attachPaddles()
+{
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[0]->_pinA), Paddle::isrReadEncoder0, PinStatus::RISING);
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[1]->_pinA), Paddle::isrReadEncoder1, PinStatus::RISING);
+}
+
+void Paddle::detachPaddles()
 {
     detachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinA));
     detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinA));

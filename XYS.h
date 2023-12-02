@@ -22,6 +22,9 @@ enum MainAxis {
 };
 
 class XYS {
+    static XYS * instance;
+    static void ballIsr();
+    
     public:
     GPIO_TypeDef *port;
     void setTimer(Portenta_H7_Timer *timer);
@@ -45,7 +48,6 @@ class XYS {
     bool needsMoving();
     void stop();
 
-    VoidCallback callback;
     void startTimer(float period);
 
 
@@ -140,7 +142,4 @@ class XYS {
 
     // Timer
     Portenta_H7_Timer *timer;
-
-    static XYS * instance = nullptr;
-    static void ballIsr();
 };

@@ -44,9 +44,11 @@ public:
     long getPosition();
     bool needsToMove();
 
-    static Paddle * instances[2] = [nullptr,nullptr];
+    static Paddle * instances[2];
     static void attachPaddles();
     static void detachPaddles();
+    static void isrReadEncoder0();
+    static void isrReadEncoder1();
 
 private:
     // variables

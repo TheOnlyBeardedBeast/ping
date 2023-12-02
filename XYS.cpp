@@ -10,6 +10,7 @@ void XYS::setTimer(Portenta_H7_Timer *timer)
     this->timer = timer;
 };
 
+XYS* XYS::instance;
 
 void XYS::init(int stepX, int dirX, int stepY, int dirY)
 {
@@ -199,9 +200,11 @@ void XYS::stepLeft()
     digitalWriteFast(stepperX.dir_pin,LOW);
     digitalWriteFast(stepperY.dir_pin,LOW);
 
-    digitalToggleMask(stepMask,this->port);
+    // digitalToggleMask(stepMask,this->port);
+    digitalWriteFast(stepperX.step_pin,PinStatus::HIGH);
     delayMicroseconds(3);
-    digitalToggleMask(stepMask,this->port);
+    digitalWriteFast(stepperX.step_pin,PinStatus::LOW);
+    // digitalToggleMask(stepMask,this->port);
     this->x--;
 }
 
@@ -218,7 +221,7 @@ void XYS::stepRight()
     this->x++;
 }
 
-static void XYS::ballIsr()
+void XYS::ballIsr()
 {
     XYS::instance->step();
 }
