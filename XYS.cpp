@@ -1,9 +1,11 @@
 #include "XYS.h"
 #include "GigaDigitalWriteFast.h"
+#include "helpers.h"
 
-#define SPEED 4000
-#define ACCELERATION 10*4000
+#define SPEED 3000
+#define ACCELERATION 10*3000
 #define TICKS 1000000
+
 
 void XYS::setTimer(Portenta_H7_Timer *timer)
 {
@@ -96,11 +98,10 @@ void XYS::step()
         this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
     } 
     else {
-        // noo need for any delay recalculation
         return;
     }
 
-    // this->timer->setInterval(this->delayPeriod-4, this->callback);
+    this->timer->setInterval(this->delayPeriod-3, XYS::ballIsr);
     this->speed = TICKS / this->delayPeriod;
     
 };
@@ -171,7 +172,7 @@ void XYS::setPosition(long x, long y)
     this->speed = sqrtf(acc2);
     // original TICKS/sqrtf(acc2)
     this->delayPeriod = TICKS / this->speed;
-    // this->startTimer(this->delayPeriod);
+    this->startTimer(this->delayPeriod);
 }
 
 void XYS::stop(){
@@ -193,12 +194,10 @@ void XYS::startTimer(float frequency)
     this->timer->attachInterruptInterval(this->delayPeriod, XYS::ballIsr);
 };
 
+
 void XYS::stepLeft()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
-
-    digitalWriteFast(stepperX.dir_pin,LOW);
-    digitalWriteFast(stepperY.dir_pin,LOW);
 
     // digitalToggleMask(stepMask,this->port);
     digitalWriteFast(stepperX.step_pin,PinStatus::HIGH);
@@ -211,9 +210,6 @@ void XYS::stepLeft()
 void XYS::stepRight()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
-
-    digitalWriteFast(stepperX.dir_pin,HIGH);
-    digitalWriteFast(stepperY.dir_pin,HIGH);
     
     digitalToggleMask(stepMask,this->port);
     delayMicroseconds(3);
@@ -224,5 +220,44 @@ void XYS::stepRight()
 void XYS::ballIsr()
 {
     XYS::instance->step();
+}
+
+void XYS::moveWhile(PinStatus motor1,PinStatus motor2, unsigned short speed, BoolCallback condition)
+{
+    PinStatus xDir = motor1;
+    PinStatus yDir = motor2;
+
+    digitalWriteFast(stepperX.dir_pin,motor1);
+    digitalWriteFast(stepperY.dir_pin,motor2);
+
+    delayMicroseconds(5);
+
+    int timeDelay = TICKS/speed;
+
+    while (condition())
+    {
+        digitalWriteFast(stepperX.step_pin,PinStatus::HIGH);
+        digitalWriteFast(stepperY.step_pin,PinStatus::HIGH);
+
+        delayMicroseconds(3);
+
+        digitalWriteFast(stepperX.step_pin,PinStatus::LOW);
+        digitalWriteFast(stepperY.step_pin,PinStatus::LOW);
+        if(xDir == HIGH)
+        {
+            this->x++;
+        } else {
+            this->x--;
+        }
+        if(yDir == HIGH)
+        {
+            this->y++;
+        } else {
+            this->y--;
+        }
+
+        delayMicroseconds(timeDelay);
+    }
+    
 }
 

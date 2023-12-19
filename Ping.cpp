@@ -23,7 +23,7 @@ void Ping::initMatch()
     }
 
     // if(this->lastWinner == Player::Player1) {
-        this->ball->setposition(this->ball->limits.x>>1,400);
+        this->ball->setposition(this->ball->limits.x>>1,0);
     // } else {
     //     this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
     // }
@@ -31,8 +31,9 @@ void Ping::initMatch()
     ball->waitRun();
 
     Paddle::attachPaddles();
+    // this->gameState = GameState::STAND_BY;
+    delay(1000);
     this->gameState = GameState::MATCH_SERVE;
-    // this->gameState = GameState::MATCH_SERVE;
 }
 
 void Ping::endMatch()
@@ -76,12 +77,6 @@ void Ping::runMatch()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    // if(ball->needsToMove()) {
-    //     // TODO:
-    //     // check paddle
-    //     // if paddle hit then shoot
-    //     return;
-    // }
         // TODO:
         // check if game point or wall hit
         // if vertical wall hit -> bounce
@@ -89,11 +84,13 @@ void Ping::runMatch()
      if(ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
     {
         ball->bounce();
+        digitalWrite(LEDB,HIGH);
     } 
      if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
     {
         this->gameState = GameState::MATCH_END;
         Paddle::detachPaddles();
+        digitalWrite(LEDR,HIGH);
     }
     // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
     // {

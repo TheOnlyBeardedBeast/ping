@@ -18,7 +18,6 @@ class AxisStepper {
         BACKWARD = -1,
     };
 
-    void setCallback(VoidCallback callback);
     void setTimer(Portenta_H7_Timer *timer);
     void init(int step,int dir);
     void step();

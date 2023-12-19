@@ -5,6 +5,7 @@
 
 #define ENCODER_RESOLUTION 600
 
+Paddle *Paddle::instances[2];
 
 Paddle::Paddle()
 {

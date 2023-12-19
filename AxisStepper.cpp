@@ -5,18 +5,10 @@
 #define ACCELERATION 4*12000
 #define TICKS 1000000
 
-void AxisStepper::setCallback(VoidCallback callback)
-{
-    this->callback = callback;
-}
-
-
 void AxisStepper::setTimer(Portenta_H7_Timer *timer)
 {
     this->timer = timer;
 };
-
-
 
 void AxisStepper::init(int step, int dir)
 {

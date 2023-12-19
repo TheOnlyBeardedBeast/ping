@@ -1,3 +1,5 @@
+#pragma once
+
 #include "XYS.h"
 
 struct Point

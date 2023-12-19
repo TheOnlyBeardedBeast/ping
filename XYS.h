@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "Portenta_H7_TimerInterrupt.h"
+#include "helpers.h"
 
 
 struct XYStepper {
@@ -26,6 +27,8 @@ class XYS {
     static void ballIsr();
     
     public:
+
+    void moveWhile(PinStatus motor1,PinStatus motor2, unsigned short speed,BoolCallback condition);
     GPIO_TypeDef *port;
     void setTimer(Portenta_H7_Timer *timer);
     void init(int stepX,int dirX,int stepY,int dirY);

@@ -86,7 +86,9 @@ void Ball::postCalibrationStop()
 
 void Ball::waitRun()
 {
-    while (this->needsToMove());
+    while (this->needsToMove()){
+        delay(1);
+    }
 }
 
 void Ball::calibrate()
@@ -100,63 +102,82 @@ void Ball::calibrate()
     
     // Looking for the left edge
     // -10000,0 = -10000,-10000
-    this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
-    while (digitalRead(30));
+    // this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
+
+    BoolCallback leftLimitHit = []() { return digitalRead(30) == HIGH ? true : false;};
+
+    this->_steppers->moveWhile(LOW,LOW,CALIBRATION_SPEED,leftLimitHit);
+    delay(200);
+    // while (digitalRead(30));
     // {
     //     // #if DEBUG == 1
     //     //     Serial.println("Wait left");
     //     // #endif
     // }
 
-    this->stop();
+    // this->stop();
     // this->postCalibrationStop();
     // delay(1000);
 
 
     // Looking for the top edge
     // -1000,-10000 = -11000, 9000
-    this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
-    while (digitalRead(32));
+    BoolCallback topLimitHit = []() { return digitalRead(32) == HIGH ? true : false;};
+
+    this->_steppers->moveWhile(LOW,HIGH,CALIBRATION_SPEED,topLimitHit);
+    delay(200);
+    // this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
+    // while (digitalRead(32));
     // {
     //     // #if (DEBUG == 1)
     //     //     Serial.println("Wait top");
     //     // #endif
     // }
 
-    this->stop();
+    // this->stop();
     // this->postCalibrationStop();
     // delay(1000);
 
     // If we have the left and the bottom edge we can set our origin point
     // this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
     // this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
+
+
     this->_steppers->setCurrentPosition(-SAFEZONE_WIDTH,-SAFEZONE_WIDTH);
 
     // Looking for the bottom edge
     // 0, 10000
-    this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
-    while (digitalRead(34));
+    BoolCallback bottomLimitHit = []() { return digitalRead(34) == HIGH ? true : false;};
+
+    this->_steppers->moveWhile(HIGH,LOW,CALIBRATION_SPEED,bottomLimitHit);
+    delay(200);
+    // this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
+    // while (digitalRead(34));
     // {
     //     // #if (DEBUG == 1)
     //     //     Serial.println("Wait bottom");
     //     // #endif
     // }
 
-    this->stop();
+    // this->stop();
     // this->postCalibrationStop();
     // delay(1000);
 
     Point midCalibrationPosition = this->getPosition();
     this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
 
-    // this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
-    this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
+    this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
+    // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
 
     waitRun();
 
     // Looking for the right edge
-    this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
-    while (digitalRead(36));
+    // this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
+    // while (digitalRead(36));
+    BoolCallback rightLimitHit = []() { return digitalRead(36) == HIGH ? true : false;};
+
+    this->_steppers->moveWhile(HIGH,HIGH,CALIBRATION_SPEED,rightLimitHit);
+    delay(200);
     // {
     //     // #if (DEBUG == 1)
     //     //     Serial.println("Wait right");
@@ -164,7 +185,7 @@ void Ball::calibrate()
         
     // }
 
-    this->stop();
+    // this->stop();
     // this->postCalibrationStop();
     // delay(1000);
 
