@@ -3,21 +3,20 @@
 #include "helpers.h"
 
 #define SPEED 3000
-#define ACCELERATION 10*3000
+#define ACCELERATION 10 * 5000
 #define TICKS 1000000
-
 
 void XYS::setTimer(Portenta_H7_Timer *timer)
 {
     this->timer = timer;
 };
 
-XYS* XYS::instance;
+XYS *XYS::instance;
 
 void XYS::init(int stepX, int dirX, int stepY, int dirY)
 {
-    GPIO_TypeDef* stepXPort = getPinPort(stepX);
-    GPIO_TypeDef* stepYPort = getPinPort(stepY);
+    GPIO_TypeDef *stepXPort = getPinPort(stepX);
+    GPIO_TypeDef *stepYPort = getPinPort(stepY);
 
     // if(stepXPort != stepYPort)
     // {
@@ -59,13 +58,13 @@ void XYS::step()
         this->resetBresenham();
         this->resetRamping();
         this->moving = false;
-        
+
         return;
     }
 
     uint16_t stepMask = 0;
 
-    int e2 = this->err<<1;
+    int e2 = this->err << 1;
     if (e2 > -dy)
     {
         err -= dy;
@@ -79,14 +78,14 @@ void XYS::step()
         stepMask |= stepperY.step_mask;
     }
 
-    digitalToggleMask(stepMask,this->port);
+    digitalToggleMask(stepMask, this->port);
     delayMicroseconds(3);
-    digitalToggleMask(stepMask,this->port);
+    digitalToggleMask(stepMask, this->port);
 
     this->distanceRun++;
 
     float Q = this->multiplier * this->delayPeriod * this->delayPeriod;
-    
+
     if (this->distanceRun < this->accelDistance)
     {
         // this->delayPeriod = this->delayPeriod * (1-this->multiplier*this->delayPeriod*this->delayPeriod);
@@ -96,14 +95,14 @@ void XYS::step()
     {
         // this->delayPeriod = this->delayPeriod * (1+this->multiplier*this->delayPeriod*this->delayPeriod);
         this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
-    } 
-    else {
+    }
+    else
+    {
         return;
     }
 
-    this->timer->setInterval(this->delayPeriod-3, XYS::ballIsr);
+    this->timer->setInterval(this->delayPeriod - 3, XYS::ballIsr);
     this->speed = TICKS / this->delayPeriod;
-    
 };
 
 void XYS::setPosition(long x, long y)
@@ -118,7 +117,7 @@ void XYS::setPosition(long x, long y)
     this->sx = this->x < x ? 1 : -1;
     this->sy = this->y < y ? 1 : -1;
     this->err = dx - dy;
-    this->axis = this->dx < this->dy ? MainAxis::Y : MainAxis::X; 
+    this->axis = this->dx < this->dy ? MainAxis::Y : MainAxis::X;
 
     // DirectionSetup
     // It is enough to setup the direction just here, because it wont change in the next steps
@@ -150,7 +149,7 @@ void XYS::setPosition(long x, long y)
     else
     {
         int speedPow = this->speed * this->speed;
-        this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 2;
+        this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 4;
         this->deccelDistance = accDistance;
 
         if (this->deccelDistance + this->accelDistance >= this->distance)
@@ -175,14 +174,27 @@ void XYS::setPosition(long x, long y)
     this->startTimer(this->delayPeriod);
 }
 
-void XYS::stop(){
+void XYS::stop()
+{
     int speedPow = this->speed * this->speed;
 
-    this->accelDistance = SPEED * SPEED - speedPow / (ACCELERATION<<1);
+    this->accelDistance = SPEED * SPEED - speedPow / (ACCELERATION << 1);
     this->deccelDistance = this->accelDistance;
 
     this->distance = this->distanceRun + this->deccelDistance;
 };
+
+void XYS::stopNow()
+{
+    this->timer->stopTimer();
+    this->timer->detachInterrupt();
+
+    this->resetBresenham();
+    this->resetRamping();
+    this->moving = false;
+
+    return;
+}
 
 bool XYS::needsMoving()
 {
@@ -194,15 +206,14 @@ void XYS::startTimer(float frequency)
     this->timer->attachInterruptInterval(this->delayPeriod, XYS::ballIsr);
 };
 
-
 void XYS::stepLeft()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
 
     // digitalToggleMask(stepMask,this->port);
-    digitalWriteFast(stepperX.step_pin,PinStatus::HIGH);
+    digitalWriteFast(stepperX.step_pin, PinStatus::HIGH);
     delayMicroseconds(3);
-    digitalWriteFast(stepperX.step_pin,PinStatus::LOW);
+    digitalWriteFast(stepperX.step_pin, PinStatus::LOW);
     // digitalToggleMask(stepMask,this->port);
     this->x--;
 }
@@ -210,10 +221,10 @@ void XYS::stepLeft()
 void XYS::stepRight()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
-    
-    digitalToggleMask(stepMask,this->port);
+
+    digitalToggleMask(stepMask, this->port);
     delayMicroseconds(3);
-    digitalToggleMask(stepMask,this->port);
+    digitalToggleMask(stepMask, this->port);
     this->x++;
 }
 
@@ -222,42 +233,44 @@ void XYS::ballIsr()
     XYS::instance->step();
 }
 
-void XYS::moveWhile(PinStatus motor1,PinStatus motor2, unsigned short speed, BoolCallback condition)
+void XYS::moveWhile(PinStatus motor1, PinStatus motor2, unsigned short speed, BoolCallback condition)
 {
     PinStatus xDir = motor1;
     PinStatus yDir = motor2;
 
-    digitalWriteFast(stepperX.dir_pin,motor1);
-    digitalWriteFast(stepperY.dir_pin,motor2);
+    digitalWriteFast(stepperX.dir_pin, motor1);
+    digitalWriteFast(stepperY.dir_pin, motor2);
 
     delayMicroseconds(5);
 
-    int timeDelay = TICKS/speed;
+    int timeDelay = TICKS / speed;
 
     while (condition())
     {
-        digitalWriteFast(stepperX.step_pin,PinStatus::HIGH);
-        digitalWriteFast(stepperY.step_pin,PinStatus::HIGH);
+        digitalWriteFast(stepperX.step_pin, PinStatus::HIGH);
+        digitalWriteFast(stepperY.step_pin, PinStatus::HIGH);
 
         delayMicroseconds(3);
 
-        digitalWriteFast(stepperX.step_pin,PinStatus::LOW);
-        digitalWriteFast(stepperY.step_pin,PinStatus::LOW);
-        if(xDir == HIGH)
+        digitalWriteFast(stepperX.step_pin, PinStatus::LOW);
+        digitalWriteFast(stepperY.step_pin, PinStatus::LOW);
+        if (xDir == HIGH)
         {
             this->x++;
-        } else {
+        }
+        else
+        {
             this->x--;
         }
-        if(yDir == HIGH)
+        if (yDir == HIGH)
         {
             this->y++;
-        } else {
+        }
+        else
+        {
             this->y--;
         }
 
         delayMicroseconds(timeDelay);
     }
-    
 }
-

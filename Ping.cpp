@@ -18,12 +18,13 @@ void Ping::calibrate()
 
 void Ping::initMatch()
 {
-    if(this->lastWinner == Player::NONE) {
-        this->lastWinner = (Player)random(0,2);
+    if (this->lastWinner == Player::NONE)
+    {
+        this->lastWinner = (Player)random(0, 2);
     }
 
     // if(this->lastWinner == Player::Player1) {
-        this->ball->setposition(this->ball->limits.x>>1,0);
+    this->ball->setposition(this->ball->limits.x >> 1, 0);
     // } else {
     //     this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
     // }
@@ -32,12 +33,14 @@ void Ping::initMatch()
 
     Paddle::attachPaddles();
     // this->gameState = GameState::STAND_BY;
-    delay(1000);
     this->gameState = GameState::MATCH_SERVE;
 }
 
 void Ping::endMatch()
 {
+    this->ball->stop();
+    this->ball->waitRun();
+
     this->ball->runCenter();
 
     // this->paddles[0]->center();
@@ -48,7 +51,6 @@ void Ping::endMatch()
     //     paddles[0]->run();
     //     paddles[1]->run();
     // }
-    
 
     this->gameState = GameState::MATCH_INIT;
 }
@@ -58,13 +60,13 @@ void Ping::serveMatch()
 {
     // if(SERVE_PIN(this->lastWinner))
     // {
-        this->ball->shootAngle(0.523598776); //0.785398163
-        // TODO: #improvement calculate a vector to serve a ball in an angle if the paddle is moving
-        this->gameState = GameState::MATCH_RUN;
-        return;
+    this->ball->shootAngle(0.523598776); // 0.785398163
+    // TODO: #improvement calculate a vector to serve a ball in an angle if the paddle is moving
+    this->gameState = GameState::SERVE_PROGRESS;
+    return;
     // }
 
-    // Paddle* paddle = this->paddles[this->lastWinner]; 
+    // Paddle* paddle = this->paddles[this->lastWinner];
     // int paddlePosition = this->paddles[this->lastWinner]->getPosition();
 
     // int mappedPosition = map(paddlePosition,0,paddle->limitMax,0,ball->limits.x);
@@ -72,25 +74,58 @@ void Ping::serveMatch()
     // this->run();
 }
 
+void Ping::serveProgress()
+{
+    Point ballPosition = this->ball->getPosition();
+    Point ballLimits = this->ball->limits;
+
+    if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y){
+        delay(10);
+        return;
+    }
+
+    this->gameState = GameState::MATCH_RUN;
+}
+
+void Ping::bounceProgess()
+{
+    Point ballPosition = this->ball->getPosition();
+    Point ballLimits = this->ball->limits;
+
+    if(ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
+    {
+        delay(10);
+        return;
+    }
+
+    this->gameState = GameState::MATCH_RUN;
+}
+
 void Ping::runMatch()
 {
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-        // TODO:
-        // check if game point or wall hit
-        // if vertical wall hit -> bounce
-        // if horizontal wall hit -> game point
-     if(ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
+    // TODO:
+    // check if game point or wall hit
+    // if vertical wall hit -> bounce
+    // if horizontal wall hit -> game point
+    if (ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
     {
+        // DEBUG
+        // Serial.println("Bounce hit");
+        // END
+        ball->stopNow();
         ball->bounce();
-        digitalWrite(LEDB,HIGH);
-    } 
-     if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
+        this->gameState = GameState::BOUNCE_PROGRESS;
+    }
+
+    if (ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
     {
         this->gameState = GameState::MATCH_END;
-        Paddle::detachPaddles();
-        digitalWrite(LEDR,HIGH);
+        // DEBUG
+        // Serial.println("Limit hit");
+        // END
     }
     // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
     // {
@@ -99,7 +134,7 @@ void Ping::runMatch()
     //     // checking the vector also prevents multiple calls
     //     // check the x position as well
     // }
-    // else if (true) 
+    // else if (true)
     // {
 
     // }
@@ -110,7 +145,7 @@ void Ping::runMatch()
     // TODO: wall hit
     // TODO: match point {
     // TODO: set winner
-        // this->gameState = GameState::MATCH_END;
+    // this->gameState = GameState::MATCH_END;
     // }
     // TODO: paddle hit
 }

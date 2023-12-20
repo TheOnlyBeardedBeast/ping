@@ -142,8 +142,25 @@ void Ball::calibrate()
     // this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
     // this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
 
+    // // DEBUG
+    // Point debugPoint =  this->getPosition();
+    // Serial.println("Before low limit set");
+    // Serial.print("x:");
+    // Serial.println(debugPoint.x);
+    // Serial.print("y:");
+    // Serial.println(debugPoint.y);
+    // // END
 
     this->_steppers->setCurrentPosition(-SAFEZONE_WIDTH,-SAFEZONE_WIDTH);
+
+    // // DEBUG
+    // debugPoint =  this->getPosition();
+    // Serial.println("After low limit set");
+    // Serial.print("x:");
+    // Serial.println(debugPoint.x);
+    // Serial.print("y:");
+    // Serial.println(debugPoint.y);
+    // // END
 
     // Looking for the bottom edge
     // 0, 10000
@@ -193,10 +210,20 @@ void Ball::calibrate()
     Point position = this->getPosition();
     this->limits.x = position.x - SAFEZONE_WIDTH;
     // this->limits.y = position.y - SAFEZONE_WIDTH;
+
+    // // DEBUG
+    // Serial.println("After high limit set");
+    // Serial.print("x:");
+    // Serial.println(this->limits.x);
+    // Serial.print("y:");
+    // Serial.println(this->limits.y);
+    // // END
     
 
     // Center the ball
     this->runCenter();
+
+    delay(5000);
 }
 
 void Ball::initCalibration() 
@@ -233,7 +260,9 @@ void Ball::bounce()
 {
     // float x = sin(this->lastAngle);
     // float y = cos(this->lastAngle);
-
+    // DEBUG
+    // Serial.println("Bounce call");
+    // END
     shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
 }
 
@@ -249,4 +278,16 @@ void Ball::shootAngle(double rads)
     double opposite = adjacent * tanrads;
     
     this->setposition(SHOOT_LEFT ? this->limits.x : 0,position.y + opposite);
+    // // DEBUG
+    // Serial.println("Shoot call");
+    // Serial.print("x:");
+    // Serial.println(SHOOT_LEFT ? this->limits.x : 0);
+    // Serial.print("y:");
+    // Serial.println(position.y + opposite);
+    // // END
+}
+
+void Ball::stopNow()
+{
+    this->_steppers->stopNow();
 }

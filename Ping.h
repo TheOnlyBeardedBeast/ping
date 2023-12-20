@@ -14,7 +14,9 @@ enum GameState
     MATCH_INIT,
     MATCH_SERVE,
     MATCH_RUN,
-    MATCH_END
+    MATCH_END,
+    SERVE_PROGRESS,
+    BOUNCE_PROGRESS,
 };
 
 class Ping
@@ -28,6 +30,8 @@ public:
     void serveMatch();
     void runMatch();
     void endMatch();
+    void serveProgress();
+    void bounceProgess();
 
 private:
     Paddle *paddles[2] = {nullptr,nullptr};

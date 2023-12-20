@@ -50,6 +50,7 @@ class XYS {
     // void setPosition(long x, long y, int speed);
     bool needsMoving();
     void stop();
+    void stopNow();
 
     void startTimer(float period);
 

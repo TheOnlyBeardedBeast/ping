@@ -5,8 +5,19 @@
 
 Ping ping;
 
+GameState prevState = GameState::STAND_BY;
+
 void setup()
 { 
+
+  // Serial.begin(115200);
+
+  // while (!Serial)
+  // {
+  //   delay(10);
+  // }
+  
+
   pinMode(LEDB,OUTPUT);
   pinMode(LEDR,OUTPUT);
   setupBall();
@@ -19,6 +30,19 @@ void setup()
 
 void loop()
 {
+  
+
+  // if(prevState!=ping.gameState){
+  //   // DEBUG
+  //   Serial.println("State change");
+  //   Serial.print("x:");
+  //   Serial.println(ball.getPosition().x);
+  //   Serial.print("y:");
+  //   Serial.println(ball.getPosition().y);
+  //   // END
+  //   prevState = ping.gameState;
+  // }
+
   switch (ping.gameState)
   {
   case GameState::CALIBRATION:
@@ -30,8 +54,14 @@ void loop()
   case GameState::MATCH_SERVE:
     ping.serveMatch();
     return;
+  case GameState::SERVE_PROGRESS:
+    ping.serveProgress();
+    return;
   case GameState::MATCH_RUN:
     ping.runMatch();
+    return;
+  case GameState::BOUNCE_PROGRESS:
+    ping.bounceProgess();
     return;
   default:
     return;

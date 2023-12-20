@@ -40,6 +40,7 @@ public:
 
     /// @brief Stops the motors which moves the ball
     void stop();
+    void stopNow();
 
     /// @brief Calibrates the game setting the min and max limits
     void calibrate();
