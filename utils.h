@@ -5,7 +5,7 @@
 #define SPEED 2000
 #define ACCELERATION 10 * SPEED
 #define CALIBRATION_SPEED 250
-#define SAFEZONE_WIDTH 100
+#define SAFEZONE_WIDTH 50
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)
 #define PADDLE_WIDTH 0
 #define CALIBRATION_LENGTH 100000

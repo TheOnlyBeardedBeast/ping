@@ -17,6 +17,7 @@ enum GameState
     MATCH_END,
     SERVE_PROGRESS,
     BOUNCE_PROGRESS,
+    CENTER_PROGRESS
 };
 
 class Ping
@@ -32,6 +33,7 @@ public:
     void endMatch();
     void serveProgress();
     void bounceProgess();
+    void centerProgress();
 
 private:
     Paddle *paddles[2] = {nullptr,nullptr};

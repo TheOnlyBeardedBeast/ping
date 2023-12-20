@@ -2,7 +2,7 @@
 #include "GigaDigitalWriteFast.h"
 #include "helpers.h"
 
-#define SPEED 3000
+#define SPEED 1600
 #define ACCELERATION 10 * 5000
 #define TICKS 1000000
 

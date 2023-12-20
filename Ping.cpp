@@ -24,7 +24,7 @@ void Ping::initMatch()
     }
 
     // if(this->lastWinner == Player::Player1) {
-    this->ball->setposition(this->ball->limits.x >> 1, 0);
+    this->ball->setposition(this->ball->limits.x >> 1, SAFEZONE_WIDTH);
     // } else {
     //     this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
     // }
@@ -38,10 +38,8 @@ void Ping::initMatch()
 
 void Ping::endMatch()
 {
-    this->ball->stop();
-    this->ball->waitRun();
-
-    this->ball->runCenter();
+    delay(1000);
+    this->ball->center();
 
     // this->paddles[0]->center();
     // this->paddles[1]->center();
@@ -52,7 +50,7 @@ void Ping::endMatch()
     //     paddles[1]->run();
     // }
 
-    this->gameState = GameState::MATCH_INIT;
+    this->gameState = GameState::CENTER_PROGRESS;
 }
 
 /// @brief Runs a serving step in the game, must be called in a loop
@@ -79,8 +77,8 @@ void Ping::serveProgress()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y){
-        delay(10);
+    if(ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y){
+        delay(50);
         return;
     }
 
@@ -92,9 +90,9 @@ void Ping::bounceProgess()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    if(ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
+    if(ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
-        delay(10);
+        delay(50);
         return;
     }
 
@@ -110,7 +108,7 @@ void Ping::runMatch()
     // check if game point or wall hit
     // if vertical wall hit -> bounce
     // if horizontal wall hit -> game point
-    if (ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
+    if (ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
         // DEBUG
         // Serial.println("Bounce hit");
@@ -120,8 +118,9 @@ void Ping::runMatch()
         this->gameState = GameState::BOUNCE_PROGRESS;
     }
 
-    if (ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
+    if (ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y)
     {
+        this->ball->stopNow();
         this->gameState = GameState::MATCH_END;
         // DEBUG
         // Serial.println("Limit hit");
@@ -148,4 +147,16 @@ void Ping::runMatch()
     // this->gameState = GameState::MATCH_END;
     // }
     // TODO: paddle hit
+}
+
+void Ping::centerProgress()
+{
+    while(this->ball->needsToMove())
+    {
+        delay(50);
+        return;
+    }
+
+    delay(1000);
+    this->gameState = GameState::MATCH_INIT;
 }

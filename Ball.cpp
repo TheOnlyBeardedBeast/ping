@@ -151,7 +151,7 @@ void Ball::calibrate()
     // Serial.println(debugPoint.y);
     // // END
 
-    this->_steppers->setCurrentPosition(-SAFEZONE_WIDTH,-SAFEZONE_WIDTH);
+    this->_steppers->setCurrentPosition(0,0);
 
     // // DEBUG
     // debugPoint =  this->getPosition();
@@ -181,7 +181,7 @@ void Ball::calibrate()
     // delay(1000);
 
     Point midCalibrationPosition = this->getPosition();
-    this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
+    this->limits.y = midCalibrationPosition.y;
 
     this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
     // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
@@ -208,7 +208,7 @@ void Ball::calibrate()
 
     // Setting the max limit for the axes
     Point position = this->getPosition();
-    this->limits.x = position.x - SAFEZONE_WIDTH;
+    this->limits.x = position.x;
     // this->limits.y = position.y - SAFEZONE_WIDTH;
 
     // // DEBUG
@@ -277,7 +277,7 @@ void Ball::shootAngle(double rads)
     double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) : position.x;
     double opposite = adjacent * tanrads;
     
-    this->setposition(SHOOT_LEFT ? this->limits.x : 0,position.y + opposite);
+    this->setposition(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH,position.y + opposite);
     // // DEBUG
     // Serial.println("Shoot call");
     // Serial.print("x:");
