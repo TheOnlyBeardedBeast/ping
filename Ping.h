@@ -39,4 +39,5 @@ private:
     Paddle *paddles[2] = {nullptr,nullptr};
     Ball *ball = nullptr;
     Player lastWinner = Player::NONE;
+    Player shooter = Player::NONE;
 };

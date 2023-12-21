@@ -183,10 +183,12 @@ void Ball::calibrate()
     Point midCalibrationPosition = this->getPosition();
     this->limits.y = midCalibrationPosition.y;
 
+    digitalWrite(LEDB,HIGH);
     this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
     // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
 
     waitRun();
+    digitalWrite(LEDB,LOW);
 
     // Looking for the right edge
     // this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
@@ -224,6 +226,7 @@ void Ball::calibrate()
     this->runCenter();
 
     delay(5000);
+    digitalWrite(LEDB,HIGH);
 }
 
 void Ball::initCalibration() 
@@ -263,28 +266,36 @@ void Ball::bounce()
     // DEBUG
     // Serial.println("Bounce call");
     // END
-    shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
+    if(this->lastAngle < PI)
+    {
+        this->shootAngle((float)PI - this->lastAngle);
+    } else {
+        this->shootAngle(((float)(PI*2)) - this->lastAngle + (float)PI);
+    }
+    // shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
 }
 
-void Ball::shootAngle(double rads)
+void Ball::shootAngle(float rads)
 {
     this->lastAngle = rads;
     Point position = this->getPosition();
 
-    double tanrads = tan(rads);
+    float tanrads = tan(rads);
     bool SHOOT_LEFT = rads > PI*0.5 && rads < PI*1.5;
 
-    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) : position.x;
-    double opposite = adjacent * tanrads;
+    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) - SAFEZONE_WIDTH : position.x - SAFEZONE_WIDTH;
+    float opposite = adjacent * tanrads;
     
     this->setposition(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH,position.y + opposite);
-    // // DEBUG
+    // DEBUG
     // Serial.println("Shoot call");
+    // Serial.print("Angle:");
+    // Serial.println(rads);
     // Serial.print("x:");
-    // Serial.println(SHOOT_LEFT ? this->limits.x : 0);
+    // Serial.println(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH);
     // Serial.print("y:");
     // Serial.println(position.y + opposite);
-    // // END
+    // END
 }
 
 void Ball::stopNow()

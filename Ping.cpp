@@ -21,13 +21,17 @@ void Ping::initMatch()
     if (this->lastWinner == Player::NONE)
     {
         this->lastWinner = (Player)random(0, 2);
+        this->shooter = this->lastWinner;
     }
 
-    // if(this->lastWinner == Player::Player1) {
-    this->ball->setposition(this->ball->limits.x >> 1, SAFEZONE_WIDTH);
-    // } else {
-    //     this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
-    // }
+    if(this->shooter == Player::Player1) 
+    {
+        // shoots (0 pi)
+        this->ball->setposition(this->ball->limits.x >> 1, SAFEZONE_WIDTH);
+    } else {
+        // shoots (pi,2pi)
+        this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
+    }
 
     ball->waitRun();
 
@@ -58,7 +62,15 @@ void Ping::serveMatch()
 {
     // if(SERVE_PIN(this->lastWinner))
     // {
-    this->ball->shootAngle(0.523598776); // 0.785398163
+    if(this->shooter == Player::Player1)
+    {
+        auto angle = ((float)random(15, 166))/180.f*(float)PI;
+        this->ball->shootAngle(angle);
+    } else {
+        auto angle = ((float)random(15, 166)+180.f)/180.f*(float)PI;
+        this->ball->shootAngle(angle);
+    }
+    // 0.785398163
     // TODO: #improvement calculate a vector to serve a ball in an angle if the paddle is moving
     this->gameState = GameState::SERVE_PROGRESS;
     return;
@@ -93,6 +105,8 @@ void Ping::bounceProgess()
     if(ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
         delay(50);
+        // Serial.println("Bounce wait");
+        // Serial.println(this->ball->needsToMove());
         return;
     }
 
@@ -120,8 +134,10 @@ void Ping::runMatch()
 
     if (ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y)
     {
+        this->shooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
         this->ball->stopNow();
-        this->gameState = GameState::MATCH_END;
+        this->gameState = GameState::MATCH_SERVE;
+        // this->gameState = GameState::MATCH_END;
         // DEBUG
         // Serial.println("Limit hit");
         // END

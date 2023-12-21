@@ -9,17 +9,15 @@ GameState prevState = GameState::STAND_BY;
 
 void setup()
 { 
-
   Serial.begin(115200);
 
   while (!Serial)
   {
     delay(10);
   }
-  
 
   pinMode(LEDB,OUTPUT);
-  pinMode(LEDR,OUTPUT);
+  // pinMode(LEDR,OUTPUT);
   setupBall();
 
   randomSeed(analogRead(0));
@@ -36,7 +34,8 @@ void loop()
 
   if(prevState!=ping.gameState){
     // DEBUG
-    Serial.println("State change");
+    Serial.print("State change:");
+    Serial.println(ping.gameState);
     Serial.print("x:");
     Serial.println(ball.getPosition().x);
     Serial.print("y:");

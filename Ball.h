@@ -70,7 +70,7 @@ public:
 
     /// @brief Shoots a ball in an angle and sets its position to the limits
     /// @param radians defines the angle of shooting
-    void shootAngle(double radians);
+    void shootAngle(float radians);
 
     void waitRun();
 private:
