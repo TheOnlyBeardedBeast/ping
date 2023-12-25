@@ -4,6 +4,7 @@
 #include "BallSetup.h"
 
 Ping ping;
+Ball ball;
 
 GameState prevState = GameState::STAND_BY;
 
@@ -16,14 +17,23 @@ void setup()
     delay(10);
   }
 
-  pinMode(LEDB,OUTPUT);
+  #if defined(ARDUINO_GIGA)
+    pinMode(LEDB,OUTPUT);
+  #elif defined(ARDUINO_SAM_DUE)
+      pinMode(LED_BUILTIN,OUTPUT);
+  #endif
   // pinMode(LEDR,OUTPUT);
   setupBall();
 
   randomSeed(analogRead(0));
   delay(10000);
 
-  digitalWrite(LEDB,LOW);
+  
+  #if defined(ARDUINO_GIGA)
+    digitalWrite(LEDB,LOW);
+  #elif defined(ARDUINO_SAM_DUE)
+    digitalWrite(LED_BUILTIN,LOW);
+  #endif
 
   ping.init(&ball);
 }

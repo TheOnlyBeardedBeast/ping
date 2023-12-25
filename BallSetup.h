@@ -1,8 +1,19 @@
 #include "Ball.h"
 
 XYS xyStepper;
-Portenta_H7_Timer xyTimer(TIM15);
-Ball ball;
+
+#if defined(ARDUINO_GIGA)
+    Portenta_H7_Timer xyTimer(TIM15);
+#elif defined(ARDUINO_SAM_DUE)
+    DueTimer xyTimer = Timer.getAvailable();
+#endif
+
+extern Ball ball;
+
+void ballIsr()
+{
+    xyStepper.step();
+}
 
 void setupBall()
 {
@@ -13,13 +24,15 @@ void setupBall()
     pinMode(29, OUTPUT);
 
     // Limit switches for X and Y axes
-    pinMode(30, INPUT_PULLUP);
-    pinMode(32, INPUT_PULLUP);
-    pinMode(34, INPUT_PULLUP);
-    pinMode(36, INPUT_PULLUP);
+    pinMode(LS1, INPUT_PULLUP);
+    pinMode(LS1, INPUT_PULLUP);
+    pinMode(LS3, INPUT_PULLUP);
+    pinMode(LS4, INPUT_PULLUP);
 
     xyStepper.init(26, 27, 28, 29);
     xyStepper.setTimer(&xyTimer);
+    xyStepper.setIsr(ballIsr);
 
     ball.setMotors(&xyStepper);
+    
 }

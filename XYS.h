@@ -1,6 +1,11 @@
 #include <Arduino.h>
-#include "Portenta_H7_TimerInterrupt.h"
+#if defined(ARDUINO_GIGA)
+    #include "Portenta_H7_TimerInterrupt.h"
+#elif defined(ARDUINO_SAM_DUE)
+    #include <DueTimer.h>
+#endif
 #include "helpers.h"
+#include "DueWriteFast.h"
 
 
 struct XYStepper {
@@ -24,13 +29,24 @@ enum MainAxis {
 
 class XYS {
     static XYS * instance;
-    static void ballIsr();
+    // static void ballIsr();
     
     public:
 
     void moveWhile(PinStatus motor1,PinStatus motor2, unsigned short speed,BoolCallback condition);
-    GPIO_TypeDef *port;
-    void setTimer(Portenta_H7_Timer *timer);
+
+    #if defined(ARDUINO_GIGA)
+        GPIO_TypeDef *port;
+    #elif defined(ARDUINO_SAM_DUE)
+        Pio  *port;
+    #endif
+    
+    #if defined(ARDUINO_GIGA)
+        void setTimer(Portenta_H7_Timer *timer);
+    #elif defined(ARDUINO_SAM_DUE)
+        void setTimer(DueTimer *timer);
+    #endif
+    
     void init(int stepX,int dirX,int stepY,int dirY);
     void step();
     void setPosition(long x, long y);
@@ -145,5 +161,16 @@ class XYS {
     void stepRight();
 
     // Timer
-    Portenta_H7_Timer *timer;
+    #if defined(ARDUINO_GIGA)
+        Portenta_H7_Timer *timer;
+    #elif defined(ARDUINO_SAM_DUE)
+        DueTimer *timer;
+    #endif
+
+    VoidCallback ballIsr = nullptr;
+
+    void setIsr(VoidCallback isr)
+    {
+        this->ballIsr = isr;
+    }
 };

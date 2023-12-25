@@ -104,7 +104,7 @@ void Ball::calibrate()
     // -10000,0 = -10000,-10000
     // this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
 
-    BoolCallback leftLimitHit = []() { return digitalRead(30) == HIGH ? true : false;};
+    BoolCallback leftLimitHit = []() { return digitalRead(LS1) == HIGH ? true : false;};
 
     this->_steppers->moveWhile(LOW,LOW,CALIBRATION_SPEED,leftLimitHit);
     delay(200);
@@ -122,7 +122,7 @@ void Ball::calibrate()
 
     // Looking for the top edge
     // -1000,-10000 = -11000, 9000
-    BoolCallback topLimitHit = []() { return digitalRead(32) == HIGH ? true : false;};
+    BoolCallback topLimitHit = []() { return digitalRead(LS2) == HIGH ? true : false;};
 
     this->_steppers->moveWhile(LOW,HIGH,CALIBRATION_SPEED,topLimitHit);
     delay(200);
@@ -164,7 +164,7 @@ void Ball::calibrate()
 
     // Looking for the bottom edge
     // 0, 10000
-    BoolCallback bottomLimitHit = []() { return digitalRead(34) == HIGH ? true : false;};
+    BoolCallback bottomLimitHit = []() { return digitalRead(LS3) == HIGH ? true : false;};
 
     this->_steppers->moveWhile(HIGH,LOW,CALIBRATION_SPEED,bottomLimitHit);
     delay(200);
@@ -183,17 +183,25 @@ void Ball::calibrate()
     Point midCalibrationPosition = this->getPosition();
     this->limits.y = midCalibrationPosition.y;
 
-    digitalWrite(LEDB,HIGH);
+    #if defined(ARDUINO_GIGA)
+        digitalWrite(LEDB,HIGH);
+    #elif defined(ARDUINO_SAM_DUE)
+        digitalWrite(LED_BUILTIN,HIGH);
+    #endif
     this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
     // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
 
     waitRun();
-    digitalWrite(LEDB,LOW);
+    #if defined(ARDUINO_GIGA)
+        digitalWrite(LEDB,LOW);
+    #elif defined(ARDUINO_SAM_DUE)
+        digitalWrite(LED_BUILTIN,LOW);
+    #endif
 
     // Looking for the right edge
     // this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
     // while (digitalRead(36));
-    BoolCallback rightLimitHit = []() { return digitalRead(36) == HIGH ? true : false;};
+    BoolCallback rightLimitHit = []() { return digitalRead(LS4) == HIGH ? true : false;};
 
     this->_steppers->moveWhile(HIGH,HIGH,CALIBRATION_SPEED,rightLimitHit);
     delay(200);
@@ -226,7 +234,11 @@ void Ball::calibrate()
     this->runCenter();
 
     delay(5000);
-    digitalWrite(LEDB,HIGH);
+    #if defined(ARDUINO_GIGA)
+        digitalWrite(LEDB,HIGH);
+    #elif defined(ARDUINO_SAM_DUE)
+        digitalWrite(LED_BUILTIN,HIGH);
+    #endif
 }
 
 void Ball::initCalibration() 
@@ -264,7 +276,7 @@ void Ball::bounce()
     // float x = sin(this->lastAngle);
     // float y = cos(this->lastAngle);
     // DEBUG
-    // Serial.println("Bounce call");
+    Serial.println("Bounce call");
     // END
     if(this->lastAngle < PI)
     {
@@ -283,18 +295,18 @@ void Ball::shootAngle(float rads)
     float tanrads = tan(rads);
     bool SHOOT_LEFT = rads > PI*0.5 && rads < PI*1.5;
 
-    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) - SAFEZONE_WIDTH : position.x - SAFEZONE_WIDTH;
+    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) - SAFEZONE_WIDTH : (position.x) - SAFEZONE_WIDTH;
     float opposite = adjacent * tanrads;
     
     this->setposition(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH,position.y + opposite);
     // DEBUG
-    // Serial.println("Shoot call");
-    // Serial.print("Angle:");
-    // Serial.println(rads);
-    // Serial.print("x:");
-    // Serial.println(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH);
-    // Serial.print("y:");
-    // Serial.println(position.y + opposite);
+    Serial.println("Shoot call");
+    Serial.print("Angle:");
+    Serial.println(rads);
+    Serial.print("x:");
+    Serial.println(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH);
+    Serial.print("y:");
+    Serial.println(position.y + opposite);
     // END
 }
 

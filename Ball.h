@@ -2,6 +2,18 @@
 
 #include "XYS.h"
 
+#if defined(ARDUINO_GIGA)
+    #define LS1 30
+    #define LS2 32
+    #define LS3 33
+    #define LS4 34
+#elif defined(ARDUINO_SAM_DUE)
+    #define LS1 33
+    #define LS2 34
+    #define LS3 35
+    #define LS4 36
+#endif
+
 struct Point
 {
     int x;

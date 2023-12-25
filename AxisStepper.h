@@ -1,5 +1,10 @@
 #include <Arduino.h>
-#include "Portenta_H7_TimerInterrupt.h"
+#if defined(ARDUINO_GIGA)
+    #include "Portenta_H7_TimerInterrupt.h"
+#elif defined(ARDUINO_SAM_DUE)
+    #include <DueTimer.h>
+#endif
+
 
 class AxisStepper {
     public:
@@ -18,7 +23,11 @@ class AxisStepper {
         BACKWARD = -1,
     };
 
-    void setTimer(Portenta_H7_Timer *timer);
+    #if defined(ARDUINO_GIGA)
+        void setTimer(Portenta_H7_Timer *timer);
+    #elif defined(ARDUINO_SAM_DUE)
+        void setTimer(DueTimer *timer);
+    #endif
     void init(int step,int dir);
     void step();
     void singleStep(StepDirection direction);
@@ -76,6 +85,11 @@ class AxisStepper {
 
     // Timer
 
+    
+    #if defined(ARDUINO_GIGA)
         Portenta_H7_Timer *timer;
+    #elif defined(ARDUINO_SAM_DUE)
+        DueTimer *timer;
+    #endif
     
 };

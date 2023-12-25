@@ -170,10 +170,10 @@ void Paddle::attachPaddles()
 {
     attachInterrupt(
         digitalPinToInterrupt(
-            Paddle::instances[0]->_pinA), Paddle::isrReadEncoder0, PinStatus::RISING);
+            Paddle::instances[0]->_pinA), Paddle::isrReadEncoder0, RISING);
     attachInterrupt(
         digitalPinToInterrupt(
-            Paddle::instances[1]->_pinA), Paddle::isrReadEncoder1, PinStatus::RISING);
+            Paddle::instances[1]->_pinA), Paddle::isrReadEncoder1, RISING);
 }
 
 void Paddle::detachPaddles()

@@ -24,18 +24,25 @@ void Ping::initMatch()
         this->shooter = this->lastWinner;
     }
 
+    Serial.print("Shooter:");
+    Serial.println(this->shooter);
+
     if(this->shooter == Player::Player1) 
     {
+        Serial.println("Center player 1");
         // shoots (0 pi)
         this->ball->setposition(this->ball->limits.x >> 1, SAFEZONE_WIDTH);
     } else {
         // shoots (pi,2pi)
+        Serial.println("Center player 2");
         this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
     }
 
+    Serial.println("Wait run start");
     ball->waitRun();
+    Serial.println("Wait run end");
 
-    Paddle::attachPaddles();
+    // Paddle::attachPaddles();
     // this->gameState = GameState::STAND_BY;
     this->gameState = GameState::MATCH_SERVE;
 }
@@ -90,7 +97,7 @@ void Ping::serveProgress()
     Point ballLimits = this->ball->limits;
 
     if(ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y){
-        delay(50);
+        delay(20);
         return;
     }
 
@@ -102,9 +109,18 @@ void Ping::bounceProgess()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
+    if(ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
+    {
+        // Danger
+        Serial.println("Danger");
+        this->ball->stopNow();
+        GameState::STAND_BY;
+        return;
+    }
+
     if(ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
-        delay(50);
+        delay(20);
         // Serial.println("Bounce wait");
         // Serial.println(this->ball->needsToMove());
         return;
@@ -118,6 +134,15 @@ void Ping::runMatch()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
+    if(ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
+    {
+        // Danger
+        Serial.println("Danger");
+        this->ball->stopNow();
+        GameState::STAND_BY;
+        return;
+    }
+
     // TODO:
     // check if game point or wall hit
     // if vertical wall hit -> bounce
@@ -125,11 +150,12 @@ void Ping::runMatch()
     if (ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
         // DEBUG
-        // Serial.println("Bounce hit");
+        Serial.println("Bounce hit");
         // END
         ball->stopNow();
         ball->bounce();
         this->gameState = GameState::BOUNCE_PROGRESS;
+        return;
     }
 
     if (ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y)
@@ -137,11 +163,14 @@ void Ping::runMatch()
         this->shooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
         this->ball->stopNow();
         this->gameState = GameState::MATCH_SERVE;
+        Serial.println("Limit hit");
+        return;
         // this->gameState = GameState::MATCH_END;
         // DEBUG
-        // Serial.println("Limit hit");
         // END
     }
+
+    delay(10);
     // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
     // {
     //     // TODO: separate sides

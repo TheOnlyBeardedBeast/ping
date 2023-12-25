@@ -1,14 +1,26 @@
 #include "AxisStepper.h"
-#include "GigaDigitalWriteFast.h"
+#if defined(ARDUINO_GIGA)
+    #include "GigaDigitalWriteFast.h"
+#elif defined(ARDUINO_SAM_DUE)
+    #include "DueWriteFast.h"
+#endif
+
 
 #define SPEED 12000
 #define ACCELERATION 4*12000
 #define TICKS 1000000
 
-void AxisStepper::setTimer(Portenta_H7_Timer *timer)
-{
-    this->timer = timer;
-};
+#if defined(ARDUINO_GIGA)
+    void AxisStepper::setTimer(Portenta_H7_Timer *timer)
+    {
+        this->timer = timer;
+    };
+#elif defined(ARDUINO_SAM_DUE)
+    void AxisStepper::setTimer(DueTimer *timer)
+    {
+        this->timer = timer;
+    };
+#endif
 
 void AxisStepper::init(int step, int dir)
 {
@@ -33,7 +45,11 @@ void AxisStepper::step()
 {
     if (!this->needsMoving())
     {
+        #if defined(ARDUINO_GIGA)
             this->timer->stopTimer();
+        #elif defined(ARDUINO_SAM_DUE)
+            this->timer->stop();
+        #endif
             this->timer->detachInterrupt();
        
 
@@ -65,7 +81,12 @@ void AxisStepper::step()
         return;
     }
 
-    this->timer->setInterval(this->delayPeriod, this->callback);
+    #if defined(ARDUINO_GIGA)
+        this->timer->setInterval(this->delayPeriod, this->callback);
+    #elif defined(ARDUINO_SAM_DUE)
+        this->timer->setPeriod(this->delayPeriod).start();
+    #endif
+    
     this->speed = TICKS / this->delayPeriod;
 };
 
@@ -131,8 +152,12 @@ void AxisStepper::stop(){
     this->distance = this->distanceRun + this->deccelDistance;
     
 }
-void AxisStepper::forceStop(){
-    this->timer->stopTimer();
+void AxisStepper::forceStop(){ 
+    #if defined(ARDUINO_GIGA)
+        this->timer->stopTimer();
+    #elif defined(ARDUINO_SAM_DUE)
+        this->timer->stop();
+    #endif
     this->timer->detachInterrupt();
 
     this->resetRamping();
@@ -199,5 +224,10 @@ bool AxisStepper::needsMoving()
 
 void AxisStepper::startTimer(float frequency)
 {
-    this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
+    #if defined(ARDUINO_GIGA)
+        this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
+    #elif defined(ARDUINO_SAM_DUE)
+        this->timer->attachInterrupt(this->callback).setPeriod(this->delayPeriod).start();
+    #endif
+    
 };
