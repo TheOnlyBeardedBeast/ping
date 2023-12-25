@@ -111,8 +111,6 @@ void Ping::bounceProgess()
 
     if(ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
     {
-        // Danger
-        Serial.println("Danger");
         this->ball->stopNow();
         GameState::STAND_BY;
         return;
@@ -120,9 +118,7 @@ void Ping::bounceProgess()
 
     if(ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
-        delay(20);
-        // Serial.println("Bounce wait");
-        // Serial.println(this->ball->needsToMove());
+        delay(1);
         return;
     }
 
@@ -143,10 +139,6 @@ void Ping::runMatch()
         return;
     }
 
-    // TODO:
-    // check if game point or wall hit
-    // if vertical wall hit -> bounce
-    // if horizontal wall hit -> game point
     if (ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
         // DEBUG
@@ -160,6 +152,12 @@ void Ping::runMatch()
 
     if (ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y)
     {
+        Player nextShooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
+
+        this->paddles[(int)nextShooter]->getPosition()
+        if()        
+
+
         this->shooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
         this->ball->stopNow();
         this->gameState = GameState::MATCH_SERVE;
@@ -171,37 +169,16 @@ void Ping::runMatch()
     }
 
     delay(10);
-    // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
-    // {
-    //     // TODO: separate sides
-    //     // only calculate hit if the next position is going to the paddle
-    //     // checking the vector also prevents multiple calls
-    //     // check the x position as well
-    // }
-    // else if (true)
-    // {
-
-    // }
-    // else if((ballPosition.x >= ballLimits.x || ballPosition.x <= 0) && ballPosition.y > 0 && ballPosition.y < ballLimits.y)
-    // {
-    //     // TODO: hit the top or bottom wall
-    // }
-    // TODO: wall hit
-    // TODO: match point {
-    // TODO: set winner
-    // this->gameState = GameState::MATCH_END;
-    // }
-    // TODO: paddle hit
 }
 
 void Ping::centerProgress()
 {
     while(this->ball->needsToMove())
     {
-        delay(50);
+        delay(20);
         return;
     }
 
-    delay(1000);
+    delay(500);
     this->gameState = GameState::MATCH_INIT;
 }

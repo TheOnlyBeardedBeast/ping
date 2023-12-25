@@ -115,7 +115,7 @@ void XYS::step()
     }
 
     #if defined(ARDUINO_GIGA)
-        this->timer->setInterval(this->delayPeriod - 3, this->ballIsr);
+        this->timer->setInterval(this->delayPeriod - 3, XYS::ballIsr);
     #elif defined(ARDUINO_SAM_DUE)
         this->timer->setPeriod(this->delayPeriod - 3).start();
     #endif
@@ -238,27 +238,26 @@ void XYS::stepLeft()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
 
-    // digitalToggleMask(stepMask,this->port);
     digitalWriteFast(stepperX.step_pin, HIGH);
     delayMicroseconds(3);
     digitalWriteFast(stepperX.step_pin, LOW);
-    // digitalToggleMask(stepMask,this->port);
     this->x--;
 }
 
 void XYS::stepRight()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
+    
     digitalToggleMask(stepMask, this->port);
     delayMicroseconds(3);
     digitalToggleMask(stepMask, this->port);
     this->x++;
 }
 
-// void XYS::ballIsr()
-// {
-//     XYS::instance->step();
-// }
+void XYS::ballIsr()
+{
+    XYS::instance->step();
+}
 
 void XYS::moveWhile(PinStatus motor1, PinStatus motor2, unsigned short speed, BoolCallback condition)
 {

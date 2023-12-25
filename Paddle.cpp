@@ -1,5 +1,6 @@
 #include "Paddle.h"
 #include "utils.h"
+#include "GameConfig.h"
 
 #define CLAMP(value, minValue, maxValue) ((value) < (minValue) ? (minValue) : ((value) > (maxValue) ? (maxValue) : (value)))
 
@@ -73,7 +74,10 @@ void Paddle::readEncoder()
     {
         this->direction = CW;
         smoother.smoothDirection(CW);
-        this->_stepper->singleStep(AxisStepper::StepDirection::FORWARD);
+        
+        this->_stepper->singleStep(smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD 
+        );
         // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
         // {
         //     // this->_stepper->moveTo(10000);
@@ -83,7 +87,10 @@ void Paddle::readEncoder()
     {
         this->direction = CCW;
         smoother.smoothDirection(CCW);
-        this->_stepper->singleStep(AxisStepper::StepDirection::BACKWARD);
+        
+        this->_stepper->singleStep(smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD 
+        );
         // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
         // {
         //     // this->_stepper->moveTo(-10000);
@@ -180,4 +187,17 @@ void Paddle::detachPaddles()
 {
     detachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinA));
     detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinA));
+}
+
+bool Paddle::canShoot(long x)
+{
+    long currentPosition = this->getPosition();
+
+    long ballStart = x - BALL_HALF;
+    long ballEnd = x + BALL_HALF;
+
+    long paddleStart = currentPosition - PADDLE_HALF;
+    long paddleEnd = currentPosition + PADDLE_HALF;
+
+    return ballStart <= paddleEnd && ballEnd >= paddleStart;
 }

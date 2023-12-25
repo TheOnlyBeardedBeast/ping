@@ -6,8 +6,8 @@
 #endif
 
 
-#define SPEED 12000
-#define ACCELERATION 4*12000
+#define SPEED 1600
+#define ACCELERATION 10*5000
 #define TICKS 1000000
 
 #if defined(ARDUINO_GIGA)
@@ -28,14 +28,10 @@ void AxisStepper::init(int step, int dir)
     this->stepper.step_pin = step;
     pinMode(dir,OUTPUT);
     this->stepper.dir_pin = dir;
-    // PB_7
-    // GPIOB->ODR // output set
-    // GPIOB->IDR // input read
 };
 
-void AxisStepper::singleStep(StepDirection direction)
+void AxisStepper::singleStep()
 {
-    digitalWriteFast(this->stepper.dir_pin, direction > 0 ? HIGH : LOW);
     digitalWriteFast(this->stepper.step_pin, HIGH);
     delayMicroseconds(3);
     digitalWriteFast(this->stepper.step_pin, LOW);
@@ -228,6 +224,13 @@ void AxisStepper::startTimer(float frequency)
         this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
     #elif defined(ARDUINO_SAM_DUE)
         this->timer->attachInterrupt(this->callback).setPeriod(this->delayPeriod).start();
-    #endif
-    
+    #endif  
 };
+
+void AxisStepper::setDirection(StepDirection dir)
+{
+    this->direction = dir;
+    digitalWriteFast(this->stepper.dir_pin, dir > 0 ? HIGH : LOW);
+
+    delayMicroseconds(5);
+}

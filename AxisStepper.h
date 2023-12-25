@@ -30,7 +30,7 @@ class AxisStepper {
     #endif
     void init(int step,int dir);
     void step();
-    void singleStep(StepDirection direction);
+    void singleStep();
     void setPosition(long newDistance);
     long getPosition() 
     {
@@ -56,6 +56,7 @@ class AxisStepper {
 
 
     StepDirection direction = StepDirection::FORWARD;
+    void setDirection(StepDirection dir);
 
     long position = 0;
     long speed = 0;

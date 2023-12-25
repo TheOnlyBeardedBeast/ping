@@ -7,7 +7,6 @@
 #define CALIBRATION_SPEED 250
 #define SAFEZONE_WIDTH 50
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)
-#define PADDLE_WIDTH 0
 #define CALIBRATION_LENGTH 100000
 /// 0 for trigonometry 1 for Bresenham
 #define LINE 0

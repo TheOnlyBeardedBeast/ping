@@ -56,32 +56,32 @@ void loop()
 
   switch (ping.gameState)
   {
-  case GameState::CALIBRATION:
-    ping.calibrate();
-    return;
-  case GameState::MATCH_INIT:
-    ping.initMatch();
-    return;
-  case GameState::MATCH_SERVE:
-    ping.serveMatch();
-    return;
-  case GameState::SERVE_PROGRESS:
-    ping.serveProgress();
-    return;
-  case GameState::MATCH_RUN:
-    ping.runMatch();
-    return;
-  case GameState::BOUNCE_PROGRESS:
-    ping.bounceProgess();
-    return;
-  case GameState::CENTER_PROGRESS:
-    ping.centerProgress();
-    return;
-  case GameState::MATCH_END:
-    ping.endMatch();
-    return;
-  default:
-    return;
+    case GameState::CALIBRATION:
+      ping.calibrate();
+      return;
+    case GameState::MATCH_INIT:
+      ping.initMatch();
+      return;
+    case GameState::MATCH_SERVE:
+      ping.serveMatch();
+      return;
+    case GameState::SERVE_PROGRESS:
+      ping.serveProgress();
+      return;
+    case GameState::MATCH_RUN:
+      ping.runMatch();
+      return;
+    case GameState::BOUNCE_PROGRESS:
+      ping.bounceProgess();
+      return;
+    case GameState::CENTER_PROGRESS:
+      ping.centerProgress();
+      return;
+    case GameState::MATCH_END:
+      ping.endMatch();
+      return;
+    default:
+      return;
   }
 }
 

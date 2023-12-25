@@ -34,9 +34,9 @@ public:
     // methods
     void initializeEncoder(byte A, byte B);
     void initializeStepper(AxisStepper* stepper);
+    bool canShoot(long x);
     void initCalibration();
     void runCalibration();
-    void recalculateSpeed();
     void readEncoder();
     void stop();
     void center();

@@ -10,18 +10,13 @@ XYS xyStepper;
 
 extern Ball ball;
 
-void ballIsr()
-{
-    xyStepper.step();
-}
-
 void setupBall()
 {
     // Motor A and B STEP and DIRECTION pins
-    pinMode(26, OUTPUT);
-    pinMode(27, OUTPUT);
-    pinMode(28, OUTPUT);
-    pinMode(29, OUTPUT);
+    pinMode(BALLSTEPPER_A_STP, OUTPUT);
+    pinMode(BALLSTEPPER_A_DIR, OUTPUT);
+    pinMode(BALLSTEPPER_B_STP, OUTPUT);
+    pinMode(BALLSTEPPER_B_DIR, OUTPUT);
 
     // Limit switches for X and Y axes
     pinMode(LS1, INPUT_PULLUP);
@@ -29,10 +24,8 @@ void setupBall()
     pinMode(LS3, INPUT_PULLUP);
     pinMode(LS4, INPUT_PULLUP);
 
-    xyStepper.init(26, 27, 28, 29);
+    xyStepper.init(BALLSTEPPER_A_STP, BALLSTEPPER_A_DIR, BALLSTEPPER_B_STP, BALLSTEPPER_B_DIR);
     xyStepper.setTimer(&xyTimer);
-    xyStepper.setIsr(ballIsr);
 
     ball.setMotors(&xyStepper);
-    
 }

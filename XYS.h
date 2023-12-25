@@ -29,7 +29,7 @@ enum MainAxis {
 
 class XYS {
     static XYS * instance;
-    // static void ballIsr();
+    static void ballIsr();
     
     public:
 
@@ -166,11 +166,4 @@ class XYS {
     #elif defined(ARDUINO_SAM_DUE)
         DueTimer *timer;
     #endif
-
-    VoidCallback ballIsr = nullptr;
-
-    void setIsr(VoidCallback isr)
-    {
-        this->ballIsr = isr;
-    }
 };
