@@ -20,6 +20,9 @@ Paddle::Paddle()
 
 void Paddle::initializeEncoder(byte A, byte B)
 {
+    pinMode(A,INPUT_PULLUP);
+    pinMode(B,INPUT_PULLUP);
+
     this->_pinA = A;
     this->_pinB = B;
 
@@ -75,9 +78,9 @@ void Paddle::readEncoder()
         this->direction = CW;
         smoother.smoothDirection(CW);
         
-        this->_stepper->singleStep(smoother.getCurrentDirection() == 0 ? 
-            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD 
-        );
+        this->_stepper->setDirection( smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
+        this->_stepper->singleStep();
         // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
         // {
         //     // this->_stepper->moveTo(10000);
@@ -88,9 +91,9 @@ void Paddle::readEncoder()
         this->direction = CCW;
         smoother.smoothDirection(CCW);
         
-        this->_stepper->singleStep(smoother.getCurrentDirection() == 0 ? 
-            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD 
-        );
+        this->_stepper->setDirection(smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
+        this->_stepper->singleStep();
         // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
         // {
         //     // this->_stepper->moveTo(-10000);
@@ -129,9 +132,15 @@ void Paddle::isrReadEncoder0()
 {
     if (Paddle::instances[0]->readA() == Paddle::instances[0]->readB())
     {
-        Paddle::instances[0]->direction = CW;
-        // smoother.smoothDirection(CW);
-        Paddle::instances[0]->_stepper->singleStep(AxisStepper::StepDirection::FORWARD);
+        Paddle::instances[0]->smoother.smoothDirection(CW);
+        
+        if(Paddle::instances[1]->_stepper->direction != AxisStepper::StepDirection::FORWARD)
+        {
+            Paddle::instances[0]->_stepper->setDirection(Paddle::instances[0]->smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
+        }
+
+        Paddle::instances[0]->_stepper->singleStep();
         // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
         // {
         //     // this->_stepper->moveTo(10000);
@@ -139,9 +148,14 @@ void Paddle::isrReadEncoder0()
     }
     else
     {
-        Paddle::instances[0]->direction = CCW;
-        // smoother.smoothDirection(CCW);
-        Paddle::instances[0]->_stepper->singleStep(AxisStepper::StepDirection::BACKWARD);
+        Paddle::instances[0]->smoother.smoothDirection(CCW);
+        if(Paddle::instances[0]->_stepper->direction != AxisStepper::StepDirection::BACKWARD)
+        {
+            Paddle::instances[0]->_stepper->setDirection(Paddle::instances[1]->smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
+        }
+
+        Paddle::instances[0]->_stepper->singleStep();
         // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
         // {
         //     // this->_stepper->moveTo(-10000);
@@ -153,9 +167,14 @@ void Paddle::isrReadEncoder1()
 {
     if (Paddle::instances[1]->readA() == Paddle::instances[1]->readB())
     {
-        Paddle::instances[1]->direction = CW;
-        // smoother.smoothDirection(CW);
-        Paddle::instances[1]->_stepper->singleStep(AxisStepper::StepDirection::FORWARD);
+        Paddle::instances[1]->smoother.smoothDirection(CW);
+        if(Paddle::instances[1]->_stepper->direction != AxisStepper::StepDirection::FORWARD)
+        {
+            Paddle::instances[1]->_stepper->setDirection(Paddle::instances[1]->smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
+        }
+        
+        Paddle::instances[1]->_stepper->singleStep();
         // if (smoother.getCurrentDirection() == CW && this->_stepper->direction == -1)
         // {
         //     // this->_stepper->moveTo(10000);
@@ -163,9 +182,14 @@ void Paddle::isrReadEncoder1()
     }
     else
     {
-        Paddle::instances[1]->direction = CCW;
-        // smoother.smoothDirection(CCW);
-        Paddle::instances[1]->_stepper->singleStep(AxisStepper::StepDirection::BACKWARD);
+        Paddle::instances[1]->smoother.smoothDirection(CCW);
+        if(Paddle::instances[1]->_stepper->direction != AxisStepper::StepDirection::BACKWARD)
+        {
+            Paddle::instances[1]->_stepper->setDirection(Paddle::instances[1]->smoother.getCurrentDirection() == 0 ? 
+            AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
+        }
+
+        Paddle::instances[1]->_stepper->singleStep();
         // if (smoother.getCurrentDirection() == CCW && this->_stepper->direction == 1)
         // {
         //     // this->_stepper->moveTo(-10000);
@@ -178,9 +202,9 @@ void Paddle::attachPaddles()
     attachInterrupt(
         digitalPinToInterrupt(
             Paddle::instances[0]->_pinA), Paddle::isrReadEncoder0, RISING);
-    attachInterrupt(
-        digitalPinToInterrupt(
-            Paddle::instances[1]->_pinA), Paddle::isrReadEncoder1, RISING);
+    // attachInterrupt(
+    //     digitalPinToInterrupt(
+    //         Paddle::instances[1]->_pinA), Paddle::isrReadEncoder1, RISING);
 }
 
 void Paddle::detachPaddles()

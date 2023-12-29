@@ -20,4 +20,4 @@
 #define PADDLE_WIDTH 200 // 10 cm
 #define PADDLE_HALF 100 // 5 cm
 #define BALL_WIDTH 80
-#define BALL_HALF
+#define BALL_HALF 40

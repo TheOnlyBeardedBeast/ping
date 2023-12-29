@@ -25,7 +25,7 @@ class Ping
 public:
     GameState gameState = GameState::CALIBRATION;
     
-    void init(Ball *ball);
+    void init(Ball *ball,Paddle *paddle1);
     void calibrate();
     void initMatch();
     void serveMatch();

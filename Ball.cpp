@@ -93,7 +93,7 @@ void Ball::waitRun()
 
 void Ball::calibrate()
 {
-    
+    Serial.println("Calibration methiod");
     // #if (DEBUG == 1)
     //         Serial.println("calibration start");
     //     #endif

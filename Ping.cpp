@@ -1,9 +1,10 @@
 #include "Ping.h"
 #include "utils.h"
 
-void Ping::init(Ball *ball)
+void Ping::init(Ball *ball, Paddle *paddle1)
 {
     this->ball = ball;
+    this->paddles[0] = paddle1;
 }
 
 void Ping::calibrate()
@@ -44,6 +45,7 @@ void Ping::initMatch()
 
     // Paddle::attachPaddles();
     // this->gameState = GameState::STAND_BY;
+    Paddle::attachPaddles();
     this->gameState = GameState::MATCH_SERVE;
 }
 
@@ -67,28 +69,18 @@ void Ping::endMatch()
 /// @brief Runs a serving step in the game, must be called in a loop
 void Ping::serveMatch()
 {
-    // if(SERVE_PIN(this->lastWinner))
+    // if(this->shooter == Player::Player1)
     // {
-    if(this->shooter == Player::Player1)
-    {
-        auto angle = ((float)random(15, 166))/180.f*(float)PI;
-        this->ball->shootAngle(angle);
-    } else {
-        auto angle = ((float)random(15, 166)+180.f)/180.f*(float)PI;
-        this->ball->shootAngle(angle);
-    }
-    // 0.785398163
-    // TODO: #improvement calculate a vector to serve a ball in an angle if the paddle is moving
-    this->gameState = GameState::SERVE_PROGRESS;
-    return;
+    //     auto angle = ((float)random(15, 166))/180.f*(float)PI;
+    //     this->ball->shootAngle(angle);
+    //     this->gameState = GameState::SERVE_PROGRESS;
+    // } else {
+    //     auto angle = ((float)random(15, 166)+180.f)/180.f*(float)PI;
+    //     this->ball->shootAngle(angle);
+    //     this->gameState = GameState::SERVE_PROGRESS;
     // }
-
-    // Paddle* paddle = this->paddles[this->lastWinner];
-    // int paddlePosition = this->paddles[this->lastWinner]->getPosition();
-
-    // int mappedPosition = map(paddlePosition,0,paddle->limitMax,0,ball->limits.x);
-    // this->ball->setposition(this->ball->getPosition().x,mappedPosition);
-    // this->run();
+    
+    return;
 }
 
 void Ping::serveProgress()
@@ -154,8 +146,8 @@ void Ping::runMatch()
     {
         Player nextShooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
 
-        this->paddles[(int)nextShooter]->getPosition()
-        if()        
+        // this->paddles[(int)nextShooter]->getPosition();
+             
 
 
         this->shooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;

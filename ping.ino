@@ -5,6 +5,9 @@
 
 Ping ping;
 Ball ball;
+Paddle p1;
+
+AxisStepper p1Stepper;
 
 GameState prevState = GameState::STAND_BY;
 
@@ -26,6 +29,11 @@ void setup()
   setupBall();
 
   randomSeed(analogRead(0));
+
+  p1.initializeEncoder(48,49);
+  p1Stepper.init(42,43);
+  p1.initializeStepper(&p1Stepper);
+
   delay(10000);
 
   
@@ -35,7 +43,7 @@ void setup()
     digitalWrite(LED_BUILTIN,LOW);
   #endif
 
-  ping.init(&ball);
+  ping.init(&ball,&p1);
 }
 
 void loop()
