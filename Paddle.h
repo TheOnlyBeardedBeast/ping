@@ -20,6 +20,7 @@ class Paddle
 {
 public:
     // variables
+    static int count;
     Direction direction = CW;
     double speed = 0;
     int limitMin = -1;

@@ -8,6 +8,8 @@
 
 Paddle *Paddle::instances[2];
 
+int Paddle::count = 0;
+
 Paddle::Paddle()
 {
     this->direction = CW;
@@ -25,9 +27,6 @@ void Paddle::initializeEncoder(byte A, byte B)
 
     this->_pinA = A;
     this->_pinB = B;
-
-    pinMode(A, INPUT);
-    pinMode(B, INPUT);
 }
 
 void Paddle::initializeStepper(AxisStepper* stepper)
@@ -130,6 +129,9 @@ bool Paddle::needsToMove()
 
 void Paddle::isrReadEncoder0()
 {
+
+    Paddle::count++;
+
     if (Paddle::instances[0]->readA() == Paddle::instances[0]->readB())
     {
         Paddle::instances[0]->smoother.smoothDirection(CW);
@@ -199,6 +201,7 @@ void Paddle::isrReadEncoder1()
 
 void Paddle::attachPaddles()
 {
+    
     attachInterrupt(
         digitalPinToInterrupt(
             Paddle::instances[0]->_pinA), Paddle::isrReadEncoder0, RISING);

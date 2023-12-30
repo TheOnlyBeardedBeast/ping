@@ -6,14 +6,20 @@ typedef Pio GPIO_TypeDef;
 
 static inline void digitalWriteFast(pin_size_t pin, PinStatus val) __attribute__((always_inline, unused));
 static inline void digitalWriteFast(pin_size_t pin, PinStatus val) {
-    // Pio *port = digitalPinToPort(pin);
-    // uint32_t mask = digitalPinToBitMask(pin);
+    Pio *port = digitalPinToPort(pin);
+    uint32_t mask = digitalPinToBitMask(pin);
 
-    // bitWrite(port->PIO_ODSR,mask,val);
-    Serial.println("WRITE");
-    Serial.println(pin);
-    Serial.println(val);
-    digitalWrite(pin,val);
+    
+    if(val == HIGH){
+        port->PIO_SODR = mask; // SODR sets HIGH based on 1s in the mask
+        return;
+    } else {
+        port->PIO_CODR = mask; // CODR sets LOW based on 1s in the mask
+    }
+    // Serial.println("WRITE");
+    // Serial.println(pin);
+    // Serial.println(val);
+    // digitalWrite(pin,val);
 }
 
 static inline void digitalToggleMask(uint16_t mask,Pio  *port) __attribute__((always_inline, unused));

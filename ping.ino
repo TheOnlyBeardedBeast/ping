@@ -11,14 +11,19 @@ AxisStepper p1Stepper;
 
 GameState prevState = GameState::STAND_BY;
 
+// int isrCount = 0;
+int prevCount = 0;
+
+// void isr()
+// {
+//   isrCount++;
+// }
+
 void setup()
 { 
   Serial.begin(115200);
 
-  while (!Serial)
-  {
-    delay(10);
-  }
+  while (!Serial);
 
   #if defined(ARDUINO_GIGA)
     pinMode(LEDB,OUTPUT);
@@ -34,7 +39,10 @@ void setup()
   p1Stepper.init(42,43);
   p1.initializeStepper(&p1Stepper);
 
-  delay(10000);
+  Paddle::instances[0] = &p1;
+  Paddle::attachPaddles();
+
+  delay(5000);
 
   
   #if defined(ARDUINO_GIGA)
@@ -44,53 +52,68 @@ void setup()
   #endif
 
   ping.init(&ball,&p1);
+
+
+  // Serial.println("Run");
+  // for(int i = 0; i<50;i++)
+  // {
+  //   digitalWriteFast(42,HIGH);
+  //   delayMicroseconds(3);
+  //   digitalWriteFast(42,LOW);
+  //   delay(20);
+  // }
+  
 }
 
 void loop()
 {
-  
-
-  if(prevState!=ping.gameState){
-    // DEBUG
-    Serial.print("State change:");
-    Serial.println(ping.gameState);
-    Serial.print("x:");
-    Serial.println(ball.getPosition().x);
-    Serial.print("y:");
-    Serial.println(ball.getPosition().y);
-    // END
-    prevState = ping.gameState;
-  }
-
-  switch (ping.gameState)
+  if(Paddle::count > prevCount)
   {
-    case GameState::CALIBRATION:
-      ping.calibrate();
-      return;
-    case GameState::MATCH_INIT:
-      ping.initMatch();
-      return;
-    case GameState::MATCH_SERVE:
-      ping.serveMatch();
-      return;
-    case GameState::SERVE_PROGRESS:
-      ping.serveProgress();
-      return;
-    case GameState::MATCH_RUN:
-      ping.runMatch();
-      return;
-    case GameState::BOUNCE_PROGRESS:
-      ping.bounceProgess();
-      return;
-    case GameState::CENTER_PROGRESS:
-      ping.centerProgress();
-      return;
-    case GameState::MATCH_END:
-      ping.endMatch();
-      return;
-    default:
-      return;
+    Serial.println(Paddle::count);
+    prevCount += 100;
   }
+
+  // if(prevState!=ping.gameState){
+  //   // DEBUG
+  //   Serial.print("State change:");
+  //   Serial.println(ping.gameState);
+  //   Serial.print("x:");
+  //   Serial.println(ball.getPosition().x);
+  //   Serial.print("y:");
+  //   Serial.println(ball.getPosition().y);
+  //   // END
+  //   prevState = ping.gameState;
+  // }
+
+  // switch (ping.gameState)
+  // {
+  //   case GameState::CALIBRATION:
+  //     ping.calibrate();
+  //     return;
+  //   case GameState::MATCH_INIT:
+  //     ping.initMatch();
+  //     return;
+  //   case GameState::MATCH_SERVE:
+  //     ping.serveMatch();
+  //     return;
+  //   case GameState::SERVE_PROGRESS:
+  //     ping.serveProgress();
+  //     return;
+  //   case GameState::MATCH_RUN:
+  //     ping.runMatch();
+  //     return;
+  //   case GameState::BOUNCE_PROGRESS:
+  //     ping.bounceProgess();
+  //     return;
+  //   case GameState::CENTER_PROGRESS:
+  //     ping.centerProgress();
+  //     return;
+  //   case GameState::MATCH_END:
+  //     ping.endMatch();
+  //     return;
+  //   default:
+  //     return;
+  // }
 }
 
 
