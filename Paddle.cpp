@@ -153,7 +153,7 @@ void Paddle::isrReadEncoder0()
         Paddle::instances[0]->smoother.smoothDirection(CCW);
         if(Paddle::instances[0]->_stepper->direction != AxisStepper::StepDirection::BACKWARD)
         {
-            Paddle::instances[0]->_stepper->setDirection(Paddle::instances[1]->smoother.getCurrentDirection() == 0 ? 
+            Paddle::instances[0]->_stepper->setDirection(Paddle::instances[0]->smoother.getCurrentDirection() == 0 ? 
             AxisStepper::StepDirection::FORWARD : AxisStepper::StepDirection::BACKWARD);
         }
 
