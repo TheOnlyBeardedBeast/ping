@@ -2,6 +2,8 @@
 #include "DirectionSmoother.h"
 #include "AxisStepper.h"
 
+#define SENSITIVITY 6
+
 enum Direction
 {
     CW,
@@ -20,12 +22,14 @@ class Paddle
 {
 public:
     // variables
-    static int count;
+    int count;
+    int modulatorA = 0;
+    int modulatorB = 0;
     Direction direction = CW;
     double speed = 0;
     int limitMin = -1;
     int limitMax = -1;
-    byte limitSwitchState[2] = {false,false};
+    int limitSwitchState[2] = {false,false};
     unsigned int CALIBRATION_LIMITS[2] = {-10000,10000};
     unsigned int max = 0;
 
@@ -33,12 +37,11 @@ public:
     Paddle();
 
     // methods
-    void initializeEncoder(byte A, byte B);
+    void initializeEncoder(int A, int B);
     void initializeStepper(AxisStepper* stepper);
     bool canShoot(long x);
     void initCalibration();
     void runCalibration();
-    void readEncoder();
     void stop();
     void center();
     void runCenter();
@@ -49,14 +52,15 @@ public:
     static void attachPaddles();
     static void detachPaddles();
     static void isrReadEncoder0();
+    static void isrReadEncoder01();
     static void isrReadEncoder1();
 
 private:
     // variables
-    byte _pinA;
+    int _pinA;
     // RoReg _registerA;
     // int _bitMaskA;
-    byte _pinB;
+    int _pinB;
     // RoReg _registerB;
     // int _bitMaskB;
     AxisStepper *_stepper = nullptr;
