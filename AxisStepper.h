@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Arduino.h>
 #if defined(ARDUINO_GIGA)
     #include "Portenta_H7_TimerInterrupt.h"
@@ -21,6 +23,7 @@ class AxisStepper {
     enum StepDirection {
         FORWARD = 1,
         BACKWARD = -1,
+        NONE = 0
     };
 
     #if defined(ARDUINO_GIGA)

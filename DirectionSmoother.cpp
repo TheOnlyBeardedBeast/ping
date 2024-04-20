@@ -2,60 +2,41 @@
 
 DirectionSmoother::DirectionSmoother()
 {
-    threshold = 5;
-    this->inputHistory = ADeque<int>(20);
+    this->q = Q_INITIAL;
 }
 
-DirectionSmoother::DirectionSmoother(int threshold)
+AxisStepper::StepDirection DirectionSmoother::smoothDirection(AxisStepper::StepDirection input)
 {
-    this->threshold = threshold;
+    if(input == AxisStepper::StepDirection::NONE)
+    {
+        return AxisStepper::StepDirection::NONE;
+    }
+
+    if(input == AxisStepper::StepDirection::BACKWARD) {
+        this->q = this->q >> 1;
+    } else {
+        this->q = (this->q << 1) & 1;
+    }
+
+    return this->getCurrentDirection();   
 }
 
-bool DirectionSmoother::smoothDirection(int input)
+AxisStepper::StepDirection DirectionSmoother::getCurrentDirection()
 {
-    this->inputHistory.push_back(input);
-
-    if (this->inputHistory.count() > threshold)
+    if (this->q == Q_BACKWARD)
     {
-        this->inputHistory.pop_front();
+        return AxisStepper::StepDirection::BACKWARD;
+    } 
+    
+    if(this->q == Q_FORWARD)
+    {
+        return AxisStepper::StepDirection::FORWARD;
     }
 
-    int countZero = 0, countOne = 0;
-    for (int i = 0; i < this->inputHistory.count(); i++)
-    {
-        int value = this->inputHistory[i];
-
-        if (value == 0)
-        {
-            countZero++;
-        }
-        else
-        {
-            countOne++;
-        }
-    }
-
-    if (countZero == threshold)
-    {
-        this->currentDirection = 0;
-        return true;
-    }
-    else if (countOne == threshold)
-    {
-        this->currentDirection = 1;
-        return true;
-    }
-
-    return false;
-}
-
-int DirectionSmoother::getCurrentDirection()
-{
-    return this->currentDirection;
+    return AxisStepper::StepDirection::NONE;
 }
 
 void DirectionSmoother::clear()
 {
-    this->currentDirection = -1;
-    this->inputHistory.clear();
+    this->q = Q_INITIAL;
 }

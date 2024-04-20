@@ -32,6 +32,11 @@ void AxisStepper::init(int step, int dir)
 
 void AxisStepper::singleStep()
 {
+    if(this->direction == AxisStepper::StepDirection::NONE)
+    {
+        return;
+    }
+
     digitalWriteFast(this->stepper.step_pin, HIGH);
     delayMicroseconds(3);
     digitalWriteFast(this->stepper.step_pin, LOW);
@@ -229,6 +234,10 @@ void AxisStepper::startTimer(float frequency)
 
 void AxisStepper::setDirection(StepDirection dir)
 {
+    if(this->direction == dir) {
+        return;
+    }
+    
     this->direction = dir;
     digitalWriteFast(this->stepper.dir_pin, dir > 0 ? HIGH : LOW);
 

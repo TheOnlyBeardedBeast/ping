@@ -134,7 +134,7 @@ void XYS::setPosition(long x, long y)
     this->dy = abs(y - this->y);
     this->sx = this->x < x ? 1 : -1;
     this->sy = this->y < y ? 1 : -1;
-    this->err = dx - dy;
+    this->err = this->dx - this->dy;
     this->axis = this->dx < this->dy ? MainAxis::Y : MainAxis::X;
 
     // DirectionSetup

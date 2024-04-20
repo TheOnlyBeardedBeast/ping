@@ -243,7 +243,7 @@ void Ball::calibrate()
 
 void Ball::initCalibration() 
 {
-    for (byte i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
         this->calibrationState[i] = false;
     }

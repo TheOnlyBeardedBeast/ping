@@ -2,7 +2,7 @@
 #include "DirectionSmoother.h"
 #include "AxisStepper.h"
 
-#define SENSITIVITY 6
+#define SENSITIVITY 3
 
 enum Direction
 {
@@ -32,6 +32,8 @@ public:
     int limitSwitchState[2] = {false,false};
     unsigned int CALIBRATION_LIMITS[2] = {-10000,10000};
     unsigned int max = 0;
+    uint32_t lastRunA;
+    uint32_t lastRunB;
 
     // constructors
     Paddle();

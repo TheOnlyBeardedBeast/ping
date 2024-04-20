@@ -1,7 +1,7 @@
 #pragma once
 
-typedef byte PinStatus;
-typedef byte pin_size_t;
+typedef int PinStatus;
+typedef int pin_size_t;
 typedef Pio GPIO_TypeDef;
 
 static inline void digitalWriteFast(pin_size_t pin, PinStatus val) __attribute__((always_inline, unused));

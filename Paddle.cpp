@@ -17,7 +17,9 @@ Paddle::Paddle()
     // this->_lastTime = 0;
     // this->_currentTime = 0;
     // this->_deltaTime = 0;
-    this->smoother = DirectionSmoother(10);
+    this->smoother = DirectionSmoother();
+    this->lastRunA = 0;
+    this->lastRunB = 0;
 }
 
 void Paddle::initializeEncoder(int A, int B)
@@ -99,23 +101,38 @@ bool Paddle::needsToMove()
 
 void Paddle::isrReadEncoder0()
 {
-    Paddle::instances[0]->modulatorA = (Paddle::instances[0]->modulatorA+1)%SENSITIVITY;
+    // int32_t stamp = micros();
+    // if(stamp - Paddle::instances[0]->lastRunA < 500)
+    // {
+    //     Paddle::instances[0]->lastRunA = stamp;
+    //     return;
+    // }
 
-    if(Paddle::instances[0]->modulatorA)
-    {
-        return;
-    }
+    // Paddle::instances[0]->lastRunA = stamp;
+
+    // Paddle::instances[0]->modulatorA = (Paddle::instances[0]->modulatorA+1)%SENSITIVITY;
+
+    // if(Paddle::instances[0]->modulatorA)
+    // {
+    //     return;
+    // }
     
     if(!Paddle::instances[0]->readB())
     {
+        // AxisStepper::StepDirection dir = Paddle::instances[0]->smoother.smoothDirection(AxisStepper::StepDirection::FORWARD);
+
         Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        // Paddle::instances[0]->_stepper->setDirection(dir);
         
         Paddle::instances[0]->_stepper->singleStep();
         Paddle::instances[0]->count -= 1;
     }
     else
     {
+        // AxisStepper::StepDirection dir = Paddle::instances[0]->smoother.smoothDirection(AxisStepper::StepDirection::BACKWARD);
+
         Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        // Paddle::instances[0]->_stepper->setDirection(dir);
 
         Paddle::instances[0]->_stepper->singleStep();
         Paddle::instances[0]->count += 1;
@@ -124,23 +141,38 @@ void Paddle::isrReadEncoder0()
 
 void Paddle::isrReadEncoder01()
 {
-    Paddle::instances[0]->modulatorB = (Paddle::instances[0]->modulatorB+1)%SENSITIVITY;
+    // int32_t stamp = micros();
+    // if(stamp - Paddle::instances[0]->lastRunB < 500)
+    // {
+    //     Paddle::instances[0]->lastRunB = stamp;
+    //     return;
+    // }
 
-    if(Paddle::instances[0]->modulatorB)
-    {
-        return;
-    }
+    // Paddle::instances[0]->lastRunB = stamp;
+
+    // Paddle::instances[0]->modulatorB = (Paddle::instances[0]->modulatorB+1)%SENSITIVITY;
+
+    // if(Paddle::instances[0]->modulatorB)
+    // {
+    //     return;
+    // }
 
     if(Paddle::instances[0]->readA())
     {
+        // AxisStepper::StepDirection dir = Paddle::instances[0]->smoother.smoothDirection(AxisStepper::StepDirection::FORWARD);
+
         Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        // Paddle::instances[0]->_stepper->setDirection(dir);
         
         Paddle::instances[0]->_stepper->singleStep();
         Paddle::instances[0]->count -= 1;
     }
     else
     {
+        // AxisStepper::StepDirection dir = Paddle::instances[0]->smoother.smoothDirection(AxisStepper::StepDirection::BACKWARD);
+
         Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        // Paddle::instances[0]->_stepper->setDirection(dir);
 
         Paddle::instances[0]->_stepper->singleStep();
         Paddle::instances[0]->count += 1;

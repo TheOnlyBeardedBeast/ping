@@ -11,7 +11,7 @@ AxisStepper p1Stepper;
 
 GameState prevState = GameState::STAND_BY;
 
-// int isrCount = 0;
+int isrCount = 0;
 int prevCount = 0;
 
 // void isr()
@@ -21,17 +21,20 @@ int prevCount = 0;
 
 void setup()
 { 
-  Serial.begin(115200);
+  // Serial.begin(115200);
+  // pinMode(LED_BUILTIN,OUTPUT);
 
-  while (!Serial);
+  // while (!Serial);
 
-  #if defined(ARDUINO_GIGA)
-    pinMode(LEDB,OUTPUT);
-  #elif defined(ARDUINO_SAM_DUE)
-      pinMode(LED_BUILTIN,OUTPUT);
-  #endif
-  // pinMode(LEDR,OUTPUT);
-  setupBall();
+  // Serial.println("available");
+
+  // #if defined(ARDUINO_GIGA)
+  //   pinMode(LEDB,OUTPUT);
+  // #elif defined(ARDUINO_SAM_DUE)
+  //     pinMode(LED_BUILTIN,OUTPUT);
+  // #endif
+  // // pinMode(LEDR,OUTPUT);
+  // setupBall();
 
   randomSeed(analogRead(0));
 
@@ -44,14 +47,18 @@ void setup()
 
   delay(5000);
 
-  
-  #if defined(ARDUINO_GIGA)
-    digitalWrite(LEDB,LOW);
-  #elif defined(ARDUINO_SAM_DUE)
-    digitalWrite(LED_BUILTIN,LOW);
-  #endif
+  p1Stepper.setPosition(100);
 
-  ping.init(&ball,&p1);
+  // delay(5000);
+
+  
+  // #if defined(ARDUINO_GIGA)
+  //   digitalWrite(LEDB,LOW);
+  // #elif defined(ARDUINO_SAM_DUE)
+  //   digitalWrite(LED_BUILTIN,LOW);
+  // #endif
+
+  // ping.init(&ball,&p1);
 
 
   // Serial.println("Run");
@@ -67,11 +74,18 @@ void setup()
 
 void loop()
 {
-  if(Paddle::count > prevCount)
-  {
-    Serial.println(Paddle::count);
-    prevCount += 100;
-  }
+  // Serial.println(p1.count);
+  // if(p1.count != prevCount)
+  // {
+  //   // Serial.println(p1.count);
+  //   if(p1.count%2==0){
+  //     digitalWrite(LED_BUILTIN,HIGH);
+  //   } else {
+  //     digitalWrite(LED_BUILTIN,LOW);
+  //   }
+  //   // Serial.println(p1.count);
+  //   prevCount = p1.count;
+  // }
 
   // if(prevState!=ping.gameState){
   //   // DEBUG
