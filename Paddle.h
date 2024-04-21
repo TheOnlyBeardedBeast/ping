@@ -55,7 +55,8 @@ public:
     static void detachPaddles();
     static void isrReadEncoder0();
     static void isrReadEncoder01();
-    static void isrReadEncoder1();
+    static void isrReadEncoder10();
+    static void isrReadEncoder11();
 
 private:
     // variables

@@ -6,8 +6,10 @@
 Ping ping;
 Ball ball;
 Paddle p1;
+Paddle p2;
 
 AxisStepper p1Stepper;
+AxisStepper p2Stepper;
 
 GameState prevState = GameState::STAND_BY;
 
@@ -42,7 +44,12 @@ void setup()
   p1Stepper.init(42,43);
   p1.initializeStepper(&p1Stepper);
 
+  p2.initializeEncoder(18,19);
+  p2Stepper.init(20,21);
+  p2.initializeStepper(&p2Stepper);
+
   Paddle::instances[0] = &p1;
+  Paddle::instances[1] = &p2;
   Paddle::attachPaddles();
 
   delay(5000);

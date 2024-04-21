@@ -179,9 +179,26 @@ void Paddle::isrReadEncoder01()
     }
 }
 
-void Paddle::isrReadEncoder1()
+void Paddle::isrReadEncoder10()
 {
-    if (Paddle::instances[1]->readA() == Paddle::instances[1]->readB())
+    // if (Paddle::instances[1]->readA() == Paddle::instances[1]->readB())
+    if (!Paddle::instances[1]->readB())
+    {
+        Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        
+        Paddle::instances[1]->_stepper->singleStep();
+    }
+    else
+    {
+        Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+
+        Paddle::instances[1]->_stepper->singleStep();
+    }
+}
+
+void Paddle::isrReadEncoder11()
+{
+    if (Paddle::instances[1]->readA())
     {
         Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
         
@@ -204,9 +221,12 @@ void Paddle::attachPaddles()
             attachInterrupt(
         digitalPinToInterrupt(
             Paddle::instances[0]->_pinB), Paddle::isrReadEncoder01, RISING);
-    // attachInterrupt(
-    //     digitalPinToInterrupt(
-    //         Paddle::instances[1]->_pinA), Paddle::isrReadEncoder1, RISING);
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[1]->_pinA), Paddle::isrReadEncoder10, RISING);
+            attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[1]->_pinB), Paddle::isrReadEncoder11, RISING);
 }
 
 void Paddle::detachPaddles()
