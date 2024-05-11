@@ -37,9 +37,15 @@ void AxisStepper::singleStep()
         return;
     }
 
-    digitalWriteFast(this->stepper.step_pin, HIGH);
-    delayMicroseconds(3);
-    digitalWriteFast(this->stepper.step_pin, LOW);
+    if(alternate){
+        digitalWriteFast(this->stepper.step_pin, HIGH);
+        alternate = false;
+    } else {
+        digitalWriteFast(this->stepper.step_pin, LOW);
+        alternate = true;
+    }
+    // delayMicroseconds(3);
+    // digitalWriteFast(this->stepper.step_pin, LOW);
 }
 
 void AxisStepper::step()

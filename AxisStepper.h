@@ -12,6 +12,7 @@ class AxisStepper {
     public:
 
     typedef void (*VoidCallback)();
+    bool alternate = false;
 
     struct XYStepper {
     int step_pin;

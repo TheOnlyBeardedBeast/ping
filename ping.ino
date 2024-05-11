@@ -54,7 +54,6 @@ void setup()
 
   delay(5000);
 
-  p1Stepper.setPosition(100);
 
   // delay(5000);
 
