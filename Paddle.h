@@ -27,30 +27,30 @@ public:
     int modulatorB = 0;
     Direction direction = CW;
     double speed = 0;
-    int limitMin = -1;
-    int limitMax = -1;
-    int limitSwitchState[2] = {false,false};
-    unsigned int CALIBRATION_LIMITS[2] = {-10000,10000};
+    int limitMin = 0;
+    int limitMax = 4000;
+    int limitSwitchState[2] = {false, false};
+    unsigned int CALIBRATION_LIMITS[2] = {-10000, 10000};
     unsigned int max = 0;
     uint32_t lastRunA;
     uint32_t lastRunB;
+    AxisStepper *_stepper = nullptr;
 
     // constructors
     Paddle();
 
     // methods
     void initializeEncoder(int A, int B);
-    void initializeStepper(AxisStepper* stepper);
+    void initializeStepper(AxisStepper *stepper);
     bool canShoot(long x);
-    void initCalibration();
-    void runCalibration();
+
     void stop();
     void center();
     void runCenter();
     long getPosition();
     bool needsToMove();
 
-    static Paddle * instances[2];
+    static Paddle *instances[2];
     static void attachPaddles();
     static void detachPaddles();
     static void isrReadEncoder0();
@@ -66,7 +66,7 @@ private:
     int _pinB;
     // RoReg _registerB;
     // int _bitMaskB;
-    AxisStepper *_stepper = nullptr;
+
     bool running = false;
     DirectionSmoother smoother;
 
@@ -79,5 +79,4 @@ private:
 
     int readA();
     int readB();
-    void calibratePosition(CalibrationPosition postion);
 };

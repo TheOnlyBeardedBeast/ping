@@ -3,9 +3,9 @@
 XYS xyStepper;
 
 #if defined(ARDUINO_GIGA)
-    Portenta_H7_Timer xyTimer(TIM15);
+Portenta_H7_Timer xyTimer(TIM15);
 #elif defined(ARDUINO_SAM_DUE)
-    DueTimer xyTimer = Timer.getAvailable();
+DueTimer xyTimer = Timer.getAvailable();
 #endif
 
 extern Ball ball;
@@ -21,8 +21,8 @@ void setupBall()
     // Limit switches for X and Y axes
     pinMode(LS1, INPUT_PULLUP);
     pinMode(LS1, INPUT_PULLUP);
-    pinMode(LS3, INPUT_PULLUP);
-    pinMode(LS4, INPUT_PULLUP);
+    // pinMode(LS3, INPUT_PULLUP);
+    // pinMode(LS4, INPUT_PULLUP);
 
     xyStepper.init(BALLSTEPPER_A_STP, BALLSTEPPER_A_DIR, BALLSTEPPER_B_STP, BALLSTEPPER_B_DIR);
     xyStepper.setTimer(&xyTimer);

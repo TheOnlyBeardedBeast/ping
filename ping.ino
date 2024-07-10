@@ -2,6 +2,7 @@
 #include "Ping.h"
 #include <Arduino.h>
 #include "BallSetup.h"
+#include "Cleaner.h"
 
 Ping ping;
 Ball ball;
@@ -13,6 +14,15 @@ AxisStepper p2Stepper;
 
 GameState prevState = GameState::STAND_BY;
 
+DueTimer clearTimer = Timer.getAvailable();
+
+bool TESTED = false;
+
+void clearStep()
+{
+  micros();
+}
+
 int isrCount = 0;
 int prevCount = 0;
 
@@ -22,7 +32,7 @@ int prevCount = 0;
 // }
 
 void setup()
-{ 
+{
   // Serial.begin(115200);
   // pinMode(LED_BUILTIN,OUTPUT);
 
@@ -40,24 +50,28 @@ void setup()
 
   randomSeed(analogRead(0));
 
-  p1.initializeEncoder(48,49);
-  p1Stepper.init(42,43);
+  p1.initializeEncoder(48, 49);
+  p1Stepper.init(42, 43);
   p1.initializeStepper(&p1Stepper);
+  p1Stepper.id = 0;
 
-  p2.initializeEncoder(18,19);
-  p2Stepper.init(20,21);
+  p2.initializeEncoder(18, 19);
+  p2Stepper.init(20, 21);
   p2.initializeStepper(&p2Stepper);
+  p2Stepper.id = 1;
 
   Paddle::instances[0] = &p1;
   Paddle::instances[1] = &p2;
   Paddle::attachPaddles();
 
-  delay(5000);
+  clearTimer.attachInterrupt(clearSteps);
+  clearTimer.setPeriod(5);
+  clearTimer.start();
 
+  delay(1000);
 
   // delay(5000);
 
-  
   // #if defined(ARDUINO_GIGA)
   //   digitalWrite(LEDB,LOW);
   // #elif defined(ARDUINO_SAM_DUE)
@@ -65,7 +79,6 @@ void setup()
   // #endif
 
   // ping.init(&ball,&p1);
-
 
   // Serial.println("Run");
   // for(int i = 0; i<50;i++)
@@ -75,35 +88,22 @@ void setup()
   //   digitalWriteFast(42,LOW);
   //   delay(20);
   // }
-  
+  pinMode(LS3, INPUT_PULLUP);
 }
 
 void loop()
 {
-  // Serial.println(p1.count);
-  // if(p1.count != prevCount)
-  // {
-  //   // Serial.println(p1.count);
-  //   if(p1.count%2==0){
-  //     digitalWrite(LED_BUILTIN,HIGH);
-  //   } else {
-  //     digitalWrite(LED_BUILTIN,LOW);
-  //   }
-  //   // Serial.println(p1.count);
-  //   prevCount = p1.count;
-  // }
-
-  // if(prevState!=ping.gameState){
-  //   // DEBUG
-  //   Serial.print("State change:");
-  //   Serial.println(ping.gameState);
-  //   Serial.print("x:");
-  //   Serial.println(ball.getPosition().x);
-  //   Serial.print("y:");
-  //   Serial.println(ball.getPosition().y);
-  //   // END
-  //   prevState = ping.gameState;
-  // }
+  if (!p1._stepper->calibrated)
+  {
+    p1._stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+    while (digitalRead(LS3))
+    {
+      p1._stepper->singleStep();
+      delayMicroseconds(750);
+    }
+    p1._stepper->calibrated = true;
+    p1._stepper->setCurrentPosition(0);
+  }
 
   // switch (ping.gameState)
   // {
@@ -136,7 +136,6 @@ void loop()
   // }
 }
 
-
 // void loop()
 // {
 //   if(stepperX.distanceToGo() == 0 && stepperY.distanceToGo() == 0){
@@ -166,4 +165,3 @@ void loop()
 
 //   ball.run();
 // }
-

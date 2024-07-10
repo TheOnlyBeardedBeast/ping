@@ -2,41 +2,43 @@
 
 #include <Arduino.h>
 #if defined(ARDUINO_GIGA)
-    #include "Portenta_H7_TimerInterrupt.h"
+#include "Portenta_H7_TimerInterrupt.h"
 #elif defined(ARDUINO_SAM_DUE)
-    #include <DueTimer.h>
+#include <DueTimer.h>
 #endif
 
-
-class AxisStepper {
-    public:
-
+class AxisStepper
+{
+public:
+    byte id;
     typedef void (*VoidCallback)();
-    bool alternate = false;
+    bool calibrated = false;
 
-    struct XYStepper {
-    int step_pin;
-    int dir_pin;
-    // TODO: store pin mask for step
-    // TODO: store pin mask for dir
+    struct XYStepper
+    {
+        int step_pin;
+        int dir_pin;
+        // TODO: store pin mask for step
+        // TODO: store pin mask for dir
     };
 
-    enum StepDirection {
+    enum StepDirection
+    {
         FORWARD = 1,
         BACKWARD = -1,
         NONE = 0
     };
 
-    #if defined(ARDUINO_GIGA)
-        void setTimer(Portenta_H7_Timer *timer);
-    #elif defined(ARDUINO_SAM_DUE)
-        void setTimer(DueTimer *timer);
-    #endif
-    void init(int step,int dir);
+#if defined(ARDUINO_GIGA)
+    void setTimer(Portenta_H7_Timer *timer);
+#elif defined(ARDUINO_SAM_DUE)
+    void setTimer(DueTimer *timer);
+#endif
+    void init(int step, int dir);
     void step();
     void singleStep();
     void setPosition(long newDistance);
-    long getPosition() 
+    long getPosition()
     {
         return this->position;
     };
@@ -51,13 +53,13 @@ class AxisStepper {
     void setSpeed(long speed);
 
     volatile bool _isRunning;
-    bool isRunning() {
+    bool isRunning()
+    {
         return this->_isRunning;
     }
 
     VoidCallback callback;
     void startTimer(float period);
-
 
     StepDirection direction = StepDirection::FORWARD;
     void setDirection(StepDirection dir);
@@ -76,7 +78,8 @@ class AxisStepper {
     float multiplier = 0;
     float delayPeriod = 0;
 
-    void resetRamping() {
+    void resetRamping()
+    {
         this->acceleration = 0;
         this->distance = 0;
         this->distanceRun = 0;
@@ -87,14 +90,13 @@ class AxisStepper {
         this->speed = 0;
     }
 
-
     // Timer
 
-    
-    #if defined(ARDUINO_GIGA)
-        Portenta_H7_Timer *timer;
-    #elif defined(ARDUINO_SAM_DUE)
-        DueTimer *timer;
-    #endif
-    
+#if defined(ARDUINO_GIGA)
+    Portenta_H7_Timer *timer;
+#elif defined(ARDUINO_SAM_DUE)
+    DueTimer *timer;
+#endif
+
+    void clearStep();
 };

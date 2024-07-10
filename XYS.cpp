@@ -70,7 +70,7 @@ void XYS::step()
             this->timer->stop();
         #endif
         
-        this->timer->detachInterrupt();
+        // this->timer->detachInterrupt();
 
         this->resetBresenham();
         this->resetRamping();

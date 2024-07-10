@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Arduino.h>
 #if defined(ARDUINO_GIGA)
     #include "Portenta_H7_TimerInterrupt.h"
