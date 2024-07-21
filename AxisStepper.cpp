@@ -49,24 +49,20 @@ void AxisStepper::singleStep()
     digitalWriteFast(this->stepper.step_pin, HIGH);
     clearTimes[this->id].enabled = true;
     clearTimes[this->id].time = micros();
-    // delayMicroseconds(3);
-    // digitalWriteFast(this->stepper.step_pin, LOW);
 }
 
 void AxisStepper::step()
 {
     if (!this->needsMoving())
     {
-#if defined(ARDUINO_GIGA)
-        this->timer->stopTimer();
-#elif defined(ARDUINO_SAM_DUE)
-        this->timer->stop();
-#endif
-        this->timer->detachInterrupt();
-
         this->resetRamping();
         this->_isRunning = false;
 
+        return;
+    }
+
+    if (micros() < this->nextStepAt)
+    {
         return;
     }
 
@@ -93,11 +89,7 @@ void AxisStepper::step()
         return;
     }
 
-#if defined(ARDUINO_GIGA)
-    this->timer->setInterval(this->delayPeriod, this->callback);
-#elif defined(ARDUINO_SAM_DUE)
-    this->timer->setPeriod(this->delayPeriod).start();
-#endif
+    this->nextStepAt = micros() + static_cast<int>(this->delayPeriod);
 
     this->speed = TICKS / this->delayPeriod;
 };
@@ -115,7 +107,6 @@ void AxisStepper::setPosition(long newDistance)
     if (this->speed == 0)
     {
         this->accelDistance = accDistance;
-        // this->deccelDistance = accDistance;
 
         if (this->accelDistance >= halfDistance)
         {
@@ -150,9 +141,9 @@ void AxisStepper::setPosition(long newDistance)
 
     this->multiplier = (float)(ACCELERATION) / (float)((float)TICKS * (float)TICKS);
     this->speed = sqrtf(acc2);
-    // original TICKS/sqrtf(acc2)
+
     this->delayPeriod = TICKS / this->speed;
-    this->startTimer(this->delayPeriod);
+    this->nextStepAt = micros + this->delayPeriod();
 }
 
 void AxisStepper::stop()
@@ -166,69 +157,15 @@ void AxisStepper::stop()
 }
 void AxisStepper::forceStop()
 {
-#if defined(ARDUINO_GIGA)
-    this->timer->stopTimer();
-#elif defined(ARDUINO_SAM_DUE)
-    this->timer->stop();
-#endif
-    this->timer->detachInterrupt();
-
-    this->resetRamping();
+    this->distanceRun = 0;
 }
+
 void AxisStepper::setSpeed(long speed)
 {
     if (!this->isRunning())
     {
         return;
     }
-    // Leib ramp
-    // this->distance = this->distance - newDistance;
-    // this->distanceRun = 0;
-    // int halfDistance = this->distance >> 1;
-
-    // float acc2 = (float)(ACCELERATION << 1);
-    // float accDistance = (float)((SPEED * SPEED) / acc2);
-    // if (this->speed == 0)
-    // {
-    //     this->accelDistance = accDistance;
-    //     // this->deccelDistance = accDistance;
-
-    //     if (this->accelDistance >= halfDistance)
-    //     {
-    //         this->accelDistance = halfDistance;
-    //         this->deccelDistance = halfDistance;
-    //     }
-    //     else
-    //     {
-    //         this->deccelDistance = this->accelDistance;
-    //     }
-    // }
-    // else
-    // {
-    //     int speedPow = this->speed * this->speed;
-    //     this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 2;
-    //     this->deccelDistance = accDistance;
-
-    //     if (this->deccelDistance + this->accelDistance >= this->distance)
-    //     {
-    //         if (this->accelDistance < halfDistance)
-    //         {
-    //             this->accelDistance = this->accelDistance;
-    //             this->deccelDistance = this->distance - this->accelDistance;
-    //         }
-    //         else
-    //         {
-    //             this->accelDistance = halfDistance;
-    //             this->deccelDistance = halfDistance;
-    //         }
-    //     }
-    // }
-
-    // this->multiplier = (float)(ACCELERATION) / (float)((float)TICKS * (float)TICKS);
-    // this->speed = sqrtf(acc2);
-    // // original TICKS/sqrtf(acc2)
-    // this->delayPeriod = TICKS / this->speed;
-    // this->startTimer(this->delayPeriod);
 };
 
 bool AxisStepper::needsMoving()
@@ -253,7 +190,14 @@ void AxisStepper::setDirection(StepDirection dir)
     }
 
     this->direction = dir;
-    digitalWriteFast(this->stepper.dir_pin, dir > 0 ? HIGH : LOW);
+    if (this->id == 0)
+    {
+        digitalWriteFast(this->stepper.dir_pin, dir > 0 ? HIGH : LOW);
+    }
+    else
+    {
+        digitalWriteFast(this->stepper.dir_pin, dir > 0 ? LOW : HIGH);
+    }
 
     delayMicroseconds(5);
 }

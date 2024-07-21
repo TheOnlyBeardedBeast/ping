@@ -13,13 +13,12 @@ public:
     byte id;
     typedef void (*VoidCallback)();
     bool calibrated = false;
+    uint32_t nextStepAt;
 
     struct XYStepper
     {
         int step_pin;
         int dir_pin;
-        // TODO: store pin mask for step
-        // TODO: store pin mask for dir
     };
 
     enum StepDirection
@@ -90,13 +89,6 @@ public:
         this->speed = 0;
     }
 
-    // Timer
-
-#if defined(ARDUINO_GIGA)
-    Portenta_H7_Timer *timer;
-#elif defined(ARDUINO_SAM_DUE)
-    DueTimer *timer;
-#endif
-
     void clearStep();
+    void clearDirection();
 };

@@ -23,14 +23,6 @@ void clearStep()
   micros();
 }
 
-int isrCount = 0;
-int prevCount = 0;
-
-// void isr()
-// {
-//   isrCount++;
-// }
-
 void setup()
 {
   // Serial.begin(115200);
@@ -89,6 +81,7 @@ void setup()
   //   delay(20);
   // }
   pinMode(LS3, INPUT_PULLUP);
+  pinMode(LS4, INPUT_PULLUP);
 }
 
 void loop()
@@ -103,6 +96,18 @@ void loop()
     }
     p1._stepper->calibrated = true;
     p1._stepper->setCurrentPosition(0);
+  }
+
+  if (!p2._stepper->calibrated)
+  {
+    p2._stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+    while (digitalRead(LS4))
+    {
+      p2._stepper->singleStep();
+      delayMicroseconds(750);
+    }
+    p2._stepper->calibrated = true;
+    p2._stepper->setCurrentPosition(0);
   }
 
   // switch (ping.gameState)
