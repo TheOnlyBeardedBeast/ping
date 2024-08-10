@@ -11,6 +11,14 @@ void Ball::setposition(int x, int y)
     this->setposition(x, y, SPEED);
 }
 
+void Ball::setCurrentPosition(int x, int y)
+{
+    int a = x + y;
+    int b = x - y;
+
+    this->_steppers->setCurrentPosition(a, b);
+}
+
 void Ball::setposition(int x, int y, int speed)
 {
     // Calculating absolute A and B motor position from absolute X and Y coordinates

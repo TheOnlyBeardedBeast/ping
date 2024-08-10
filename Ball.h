@@ -19,7 +19,7 @@ class Ball
 {
 public:
     /// @brief An array which represents the limit switches visiting state
-    bool calibrationState[4] = {false,false,false,false};
+    bool calibrationState[4] = {false, false, false, false};
     Point limits;
 
     /// @brief Sets the motors which moves the balls
@@ -29,14 +29,16 @@ public:
     void init();
 
     /// @brief Sets an absolute position to go to with the default speed
-    /// @param x 
-    /// @param y 
+    /// @param x
+    /// @param y
     void setposition(int x, int y);
 
+    void setCurrentPosition(int x, int y);
+
     /// @brief Sets an absolute position to go to with a custom speed
-    /// @param x 
-    /// @param y 
-    /// @param speed 
+    /// @param x
+    /// @param y
+    /// @param speed
     void setposition(int x, int y, int speed);
 
     /// @brief Stops the motors which moves the ball
@@ -66,7 +68,7 @@ public:
     float lastVectorY;
     float lastSpeed;
 
-    /// @brief Bounces onn the limits 
+    /// @brief Bounces onn the limits
     void bounce();
 
     /// @brief Shoots a ball in an angle and sets its position to the limits
@@ -74,6 +76,7 @@ public:
     void shootAngle(float radians);
 
     void waitRun();
+
 private:
     XYS *_steppers = nullptr;
 
@@ -82,11 +85,10 @@ private:
 
     int dx;
     int dy;
-    
-    #if (LINE == 1)
-        int sx;
-        int sy;
-        int err;
-    #endif
-    
+
+#if (LINE == 1)
+    int sx;
+    int sy;
+    int err;
+#endif
 };
