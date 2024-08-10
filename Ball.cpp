@@ -115,7 +115,7 @@ void Ball::calibrate()
 
     this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
-    this->_steppers->setCurrentPosition(2000, 2000);
+    this->setCurrentPosition(2460, 2280);
     delay(200);
     return;
     // while (digitalRead(30));
