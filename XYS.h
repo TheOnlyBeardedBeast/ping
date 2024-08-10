@@ -2,15 +2,15 @@
 
 #include <Arduino.h>
 #if defined(ARDUINO_GIGA)
-    #include "Portenta_H7_TimerInterrupt.h"
+#include "Portenta_H7_TimerInterrupt.h"
 #elif defined(ARDUINO_SAM_DUE)
-    #include <DueTimer.h>
+#include <DueTimer.h>
 #endif
 #include "helpers.h"
 #include "DueWriteFast.h"
 
-
-struct XYStepper {
+struct XYStepper
+{
     int step_pin;
     int dir_pin;
     uint16_t step_mask;
@@ -19,51 +19,53 @@ struct XYStepper {
     // TODO: store pin mask for dir
 };
 
-enum StepDirection {
+enum StepDirection
+{
     FORWARD = 1,
     BACKWARD = -1,
 };
 
-enum MainAxis {
+enum MainAxis
+{
     X,
     Y
 };
 
-class XYS {
-    static XYS * instance;
+class XYS
+{
+    static XYS *instance;
     static void ballIsr();
-    
-    public:
 
-    void moveWhile(PinStatus motor1,PinStatus motor2, unsigned short speed,BoolCallback condition);
+public:
+    void moveWhile(PinStatus motor1, PinStatus motor2, unsigned short speed, BoolCallback condition);
 
-    #if defined(ARDUINO_GIGA)
-        GPIO_TypeDef *port;
-    #elif defined(ARDUINO_SAM_DUE)
-        Pio  *port;
-    #endif
-    
-    #if defined(ARDUINO_GIGA)
-        void setTimer(Portenta_H7_Timer *timer);
-    #elif defined(ARDUINO_SAM_DUE)
-        void setTimer(DueTimer *timer);
-    #endif
-    
-    void init(int stepX,int dirX,int stepY,int dirY);
+#if defined(ARDUINO_GIGA)
+    GPIO_TypeDef *port;
+#elif defined(ARDUINO_SAM_DUE)
+    Pio *port;
+#endif
+
+#if defined(ARDUINO_GIGA)
+    void setTimer(Portenta_H7_Timer *timer);
+#elif defined(ARDUINO_SAM_DUE)
+    void setTimer(DueTimer *timer);
+#endif
+
+    void init(int stepX, int dirX, int stepY, int dirY);
     void step();
     void setPosition(long x, long y);
-    long getX() 
+    long getX()
     {
         return this->x;
     };
-    long getY() 
+    long getY()
     {
         return this->y;
     };
-    void setCurrentPosition(long x, long y)
+    void setCurrentPosition(long _x, long _y)
     {
-        this->x = x;
-        this->y = y;
+        this->x = _x;
+        this->y = _y;
     };
     // void setPosition(long x, long y, int speed);
     bool needsMoving();
@@ -72,16 +74,16 @@ class XYS {
 
     void startTimer(float period);
 
-
     volatile bool moving = false;
-    bool isMoving(){
+    bool isMoving()
+    {
         return this->moving;
     }
     StepDirection direction = StepDirection::FORWARD;
     // long targetX = 0;
     // long targetY = 0;
-    long x = 0;
-    long y = 0;
+    volatile long x = 0;
+    volatile long y = 0;
     long speed = 0;
     XYStepper stepperX;
     XYStepper stepperY;
@@ -96,7 +98,8 @@ class XYS {
     float multiplier = 0;
     float delayPeriod = 0;
 
-    void resetRamping() {
+    void resetRamping()
+    {
         this->acceleration = 0;
         this->distance = 0;
         this->distanceRun = 0;
@@ -126,7 +129,6 @@ class XYS {
         Serial.print("Speed:");
         Serial.println(this->speed);
     }
-
 
     // Bresenham
     int dx;
@@ -162,10 +164,10 @@ class XYS {
     void stepLeft();
     void stepRight();
 
-    // Timer
-    #if defined(ARDUINO_GIGA)
-        Portenta_H7_Timer *timer;
-    #elif defined(ARDUINO_SAM_DUE)
-        DueTimer *timer;
-    #endif
+// Timer
+#if defined(ARDUINO_GIGA)
+    Portenta_H7_Timer *timer;
+#elif defined(ARDUINO_SAM_DUE)
+    DueTimer *timer;
+#endif
 };

@@ -1,3 +1,4 @@
+#pragma once
 #include <Arduino.h>
 #include "DirectionSmoother.h"
 #include "AxisStepper.h"
@@ -23,12 +24,14 @@ class Paddle
 public:
     // variables
     int count;
+    byte id;
     int modulatorA = 0;
     int modulatorB = 0;
+    uint32_t lastStep = 0;
     Direction direction = CW;
     double speed = 0;
     int limitMin = 0;
-    int limitMax = 4000;
+    int limitMax = 2000;
     int limitSwitchState[2] = {false, false};
     unsigned int CALIBRATION_LIMITS[2] = {-10000, 10000};
     unsigned int max = 0;
@@ -49,6 +52,7 @@ public:
     void runCenter();
     long getPosition();
     bool needsToMove();
+    void clearSingleStep();
 
     static Paddle *instances[2];
     static void attachPaddles();
@@ -57,6 +61,9 @@ public:
     static void isrReadEncoder01();
     static void isrReadEncoder10();
     static void isrReadEncoder11();
+    static void calibrate();
+    static bool calibrated;
+    static void centerAll();
 
 private:
     // variables
@@ -66,6 +73,7 @@ private:
     int _pinB;
     // RoReg _registerB;
     // int _bitMaskB;
+    byte stepIndex = 0;
 
     bool running = false;
     DirectionSmoother smoother;
@@ -76,7 +84,7 @@ private:
     // unsigned long _deltaTime = 0;
 
     // methods
-
+    void singleStep();
     int readA();
     int readB();
 };

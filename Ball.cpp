@@ -8,7 +8,7 @@ void Ball::setMotors(XYS *_steppers)
 
 void Ball::setposition(int x, int y)
 {
-    this->setposition(x,y,SPEED);
+    this->setposition(x, y, SPEED);
 }
 
 void Ball::setposition(int x, int y, int speed)
@@ -23,14 +23,12 @@ void Ball::setposition(int x, int y, int speed)
 
     // this->dx = abs(a - a0);
     // this->dy = abs(b - b0);
-    
-
 
     // // Calculating the angle in radians fo the next relative movement
     // #if (LINE == 0)
     //     double rads = atan(((double)this->dy) / ((double)this->dx));
     // #endif
-    
+
     // Point currentPosition = this->getPosition();
     // // this->lastAngle = atan(double(currentPosition.x - x) / double(currentPosition.y - y));
     // // Separating the movement into its vectors
@@ -42,7 +40,7 @@ void Ball::setposition(int x, int y, int speed)
     //     double bmodifier = sin(rads);
     // #endif
 
-    this->_steppers->setPosition(a,b);
+    this->_steppers->setPosition(a, b);
 
     // #if (LINE == 1)
     //     this->_stepperA->setMaxSpeed(speed);
@@ -68,7 +66,7 @@ Point Ball::getPosition()
     long a = this->_steppers->getX();
     long b = this->_steppers->getY();
 
-    // Creating the result struct and converting motor positions to X and Y coordinated 
+    // Creating the result struct and converting motor positions to X and Y coordinated
     Point result = Point();
     result.x = (a + b) >> 1;
     result.y = (a - b) >> 1;
@@ -81,33 +79,37 @@ void Ball::postCalibrationStop()
     this->stop();
 
     this->waitRun();
-    
 }
 
 void Ball::waitRun()
 {
-    while (this->needsToMove()){
+    while (this->needsToMove())
+    {
         delay(1);
     }
 }
 
 void Ball::calibrate()
 {
-    Serial.println("Calibration methiod");
+    // Serial.println("Calibration methiod");
     // #if (DEBUG == 1)
     //         Serial.println("calibration start");
     //     #endif
     // Initialize visited limit switch array
     this->initCalibration();
-    
+
     // Looking for the left edge
     // -10000,0 = -10000,-10000
     // this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
 
-    BoolCallback leftLimitHit = []() { return digitalRead(LS1) == HIGH ? true : false;};
+    BoolCallback leftLimitHit = []()
+    { return digitalRead(LS1) == HIGH ? true : false; };
 
-    this->_steppers->moveWhile(LOW,LOW,CALIBRATION_SPEED,leftLimitHit);
+    this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
+    this->_steppers->setCurrentPosition(2000, 2000);
+    delay(200);
+    return;
     // while (digitalRead(30));
     // {
     //     // #if DEBUG == 1
@@ -119,12 +121,12 @@ void Ball::calibrate()
     // this->postCalibrationStop();
     // delay(1000);
 
-
     // Looking for the top edge
     // -1000,-10000 = -11000, 9000
-    BoolCallback topLimitHit = []() { return digitalRead(LS2) == HIGH ? true : false;};
+    BoolCallback topLimitHit = []()
+    { return digitalRead(LS2) == HIGH ? true : false; };
 
-    this->_steppers->moveWhile(LOW,HIGH,CALIBRATION_SPEED,topLimitHit);
+    this->_steppers->moveWhile(LOW, HIGH, CALIBRATION_SPEED, topLimitHit);
     delay(200);
     // this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
     // while (digitalRead(32));
@@ -151,7 +153,7 @@ void Ball::calibrate()
     // Serial.println(debugPoint.y);
     // // END
 
-    this->_steppers->setCurrentPosition(0,0);
+    this->_steppers->setCurrentPosition(0, 0);
 
     // // DEBUG
     // debugPoint =  this->getPosition();
@@ -164,9 +166,10 @@ void Ball::calibrate()
 
     // Looking for the bottom edge
     // 0, 10000
-    BoolCallback bottomLimitHit = []() { return digitalRead(LS3) == HIGH ? true : false;};
+    BoolCallback bottomLimitHit = []()
+    { return digitalRead(LS3) == HIGH ? true : false; };
 
-    this->_steppers->moveWhile(HIGH,LOW,CALIBRATION_SPEED,bottomLimitHit);
+    this->_steppers->moveWhile(HIGH, LOW, CALIBRATION_SPEED, bottomLimitHit);
     delay(200);
     // this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
     // while (digitalRead(34));
@@ -183,33 +186,34 @@ void Ball::calibrate()
     Point midCalibrationPosition = this->getPosition();
     this->limits.y = midCalibrationPosition.y;
 
-    #if defined(ARDUINO_GIGA)
-        digitalWrite(LEDB,HIGH);
-    #elif defined(ARDUINO_SAM_DUE)
-        digitalWrite(LED_BUILTIN,HIGH);
-    #endif
-    this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
+#if defined(ARDUINO_GIGA)
+    digitalWrite(LEDB, HIGH);
+#elif defined(ARDUINO_SAM_DUE)
+    digitalWrite(LED_BUILTIN, HIGH);
+#endif
+    this->setposition(0, this->limits.y >> 1, CALIBRATION_SPEED);
     // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
 
     waitRun();
-    #if defined(ARDUINO_GIGA)
-        digitalWrite(LEDB,LOW);
-    #elif defined(ARDUINO_SAM_DUE)
-        digitalWrite(LED_BUILTIN,LOW);
-    #endif
+#if defined(ARDUINO_GIGA)
+    digitalWrite(LEDB, LOW);
+#elif defined(ARDUINO_SAM_DUE)
+    digitalWrite(LED_BUILTIN, LOW);
+#endif
 
     // Looking for the right edge
     // this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
     // while (digitalRead(36));
-    BoolCallback rightLimitHit = []() { return digitalRead(LS4) == HIGH ? true : false;};
+    BoolCallback rightLimitHit = []()
+    { return digitalRead(LS4) == HIGH ? true : false; };
 
-    this->_steppers->moveWhile(HIGH,HIGH,CALIBRATION_SPEED,rightLimitHit);
+    this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, rightLimitHit);
     delay(200);
     // {
     //     // #if (DEBUG == 1)
     //     //     Serial.println("Wait right");
     //     // #endif
-        
+
     // }
 
     // this->stop();
@@ -228,25 +232,23 @@ void Ball::calibrate()
     // Serial.print("y:");
     // Serial.println(this->limits.y);
     // // END
-    
 
     // Center the ball
     this->runCenter();
 
     delay(5000);
-    #if defined(ARDUINO_GIGA)
-        digitalWrite(LEDB,HIGH);
-    #elif defined(ARDUINO_SAM_DUE)
-        digitalWrite(LED_BUILTIN,HIGH);
-    #endif
+#if defined(ARDUINO_GIGA)
+    digitalWrite(LEDB, HIGH);
+#elif defined(ARDUINO_SAM_DUE)
+    digitalWrite(LED_BUILTIN, HIGH);
+#endif
 }
 
-void Ball::initCalibration() 
+void Ball::initCalibration()
 {
-    for (int i = 0; i < 4; i++)
-    {
-        this->calibrationState[i] = false;
-    }
+    this->calibrationState[0] = false;
+    this->calibrationState[1] = false;
+    this->_steppers->setCurrentPosition(0, 0);
 }
 
 void Ball::runCenter()
@@ -254,7 +256,7 @@ void Ball::runCenter()
     this->center();
 
     this->waitRun();
-    
+
     this->stop();
 
     this->waitRun();
@@ -262,9 +264,8 @@ void Ball::runCenter()
 
 void Ball::center()
 {
-    this->setposition(this->limits.x >> 1, this->limits.y>>1);
+    this->setposition(this->limits.x >> 1, this->limits.y >> 1);
 }
-
 
 bool Ball::needsToMove()
 {
@@ -278,11 +279,13 @@ void Ball::bounce()
     // DEBUG
     Serial.println("Bounce call");
     // END
-    if(this->lastAngle < PI)
+    if (this->lastAngle < PI)
     {
         this->shootAngle((float)PI - this->lastAngle);
-    } else {
-        this->shootAngle(((float)(PI*2)) - this->lastAngle + (float)PI);
+    }
+    else
+    {
+        this->shootAngle(((float)(PI * 2)) - this->lastAngle + (float)PI);
     }
     // shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
 }
@@ -293,12 +296,12 @@ void Ball::shootAngle(float rads)
     Point position = this->getPosition();
 
     float tanrads = tan(rads);
-    bool SHOOT_LEFT = rads > PI*0.5 && rads < PI*1.5;
+    bool SHOOT_LEFT = rads > PI * 0.5 && rads < PI * 1.5;
 
-    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) - SAFEZONE_WIDTH : (position.x) - SAFEZONE_WIDTH;
+    double adjacent = SHOOT_LEFT ? -(this->limits.x - position.x) - SAFEZONE_WIDTH : (position.x) - SAFEZONE_WIDTH;
     float opposite = adjacent * tanrads;
-    
-    this->setposition(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH,position.y + opposite);
+
+    this->setposition(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH, position.y + opposite);
     // DEBUG
     Serial.println("Shoot call");
     Serial.print("Angle:");

@@ -1,3 +1,4 @@
+#pragma once
 #include "AxisStepper.h"
 
 #define Q_FORWARD 0b11111111111111111111111111111111

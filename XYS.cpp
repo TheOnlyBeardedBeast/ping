@@ -1,8 +1,8 @@
 #include "XYS.h"
 #if defined(ARDUINO_GIGA)
-    #include "GigaDigitalWriteFast.h"
+#include "GigaDigitalWriteFast.h"
 #elif defined(ARDUINO_SAM_DUE)
-    #include "DueWriteFast.h"
+#include "DueWriteFast.h"
 #endif
 #include "helpers.h"
 
@@ -10,18 +10,16 @@
 #define ACCELERATION 10 * 5000
 #define TICKS 1000000
 
-
-
 #if defined(ARDUINO_GIGA)
-    void XYS::setTimer(Portenta_H7_Timer *timer)
-    {
-        this->timer = timer;
-    };
+void XYS::setTimer(Portenta_H7_Timer *timer)
+{
+    this->timer = timer;
+};
 #elif defined(ARDUINO_SAM_DUE)
-    void XYS::setTimer(DueTimer *timer)
-    {
-        this->timer = timer;
-    };
+void XYS::setTimer(DueTimer *timer)
+{
+    this->timer = timer;
+};
 #endif
 
 XYS *XYS::instance;
@@ -64,12 +62,12 @@ void XYS::step()
 
     if (!this->needsMoving())
     {
-        #if defined(ARDUINO_GIGA)
-            this->timer->stopTimer();
-        #elif defined(ARDUINO_SAM_DUE)
-            this->timer->stop();
-        #endif
-        
+#if defined(ARDUINO_GIGA)
+        this->timer->stopTimer();
+#elif defined(ARDUINO_SAM_DUE)
+        this->timer->stop();
+#endif
+
         // this->timer->detachInterrupt();
 
         this->resetBresenham();
@@ -114,12 +112,12 @@ void XYS::step()
         this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
     }
 
-    #if defined(ARDUINO_GIGA)
-        this->timer->setInterval(this->delayPeriod - 3, XYS::ballIsr);
-    #elif defined(ARDUINO_SAM_DUE)
-        this->timer->setPeriod(this->delayPeriod - 3).start();
-    #endif
-    
+#if defined(ARDUINO_GIGA)
+    this->timer->setInterval(this->delayPeriod - 3, XYS::ballIsr);
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->setPeriod(this->delayPeriod - 3).start();
+#endif
+
     this->speed = TICKS / this->delayPeriod;
 };
 
@@ -204,12 +202,12 @@ void XYS::stop()
 
 void XYS::stopNow()
 {
-    #if defined(ARDUINO_GIGA)
-        this->timer->stopTimer();
-    #elif defined(ARDUINO_SAM_DUE)
-        this->timer->stop();
-    #endif
-    
+#if defined(ARDUINO_GIGA)
+    this->timer->stopTimer();
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->stop();
+#endif
+
     this->timer->detachInterrupt();
 
     this->resetBresenham();
@@ -226,12 +224,11 @@ bool XYS::needsMoving()
 
 void XYS::startTimer(float frequency)
 {
-    #if defined(ARDUINO_GIGA)
-        this->timer->attachInterruptInterval(this->delayPeriod, XYS::ballIsr);
-    #elif defined(ARDUINO_SAM_DUE)
-        this->timer->attachInterrupt(XYS::ballIsr).setPeriod(this->delayPeriod).start();
-    #endif
-    
+#if defined(ARDUINO_GIGA)
+    this->timer->attachInterruptInterval(this->delayPeriod, XYS::ballIsr);
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->attachInterrupt(XYS::ballIsr).setPeriod(this->delayPeriod).start();
+#endif
 };
 
 void XYS::stepLeft()
@@ -247,7 +244,7 @@ void XYS::stepLeft()
 void XYS::stepRight()
 {
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
-    
+
     digitalToggleMask(stepMask, this->port);
     delayMicroseconds(3);
     digitalToggleMask(stepMask, this->port);
@@ -280,19 +277,19 @@ void XYS::moveWhile(PinStatus motor1, PinStatus motor2, unsigned short speed, Bo
 
         digitalWriteFast(stepperX.step_pin, LOW);
         digitalWriteFast(stepperY.step_pin, LOW);
-        if (xDir == HIGH)
+        if (xDir && yDir)
         {
             this->x++;
         }
-        else
+        else if (!xDir && !yDir)
         {
             this->x--;
         }
-        if (yDir == HIGH)
+        if (yDir && !yDir)
         {
             this->y++;
         }
-        else
+        else if (!yDir && yDir)
         {
             this->y--;
         }

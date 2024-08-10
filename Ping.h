@@ -1,13 +1,14 @@
 #include "Paddle.h"
 #include "Ball.h"
 
-enum Player{
+enum Player
+{
     NONE = -1,
     Player1 = 0,
     Player2 = 1
 };
 
-enum GameState 
+enum GameState
 {
     CALIBRATION,
     STAND_BY,
@@ -24,8 +25,8 @@ class Ping
 {
 public:
     GameState gameState = GameState::CALIBRATION;
-    
-    void init(Ball *ball,Paddle *paddle1);
+
+    void init(Ball *ball, Paddle *paddle1, Paddle *paddle2);
     void calibrate();
     void initMatch();
     void serveMatch();
@@ -36,7 +37,7 @@ public:
     void centerProgress();
 
 private:
-    Paddle *paddles[2] = {nullptr,nullptr};
+    Paddle *paddles[2] = {nullptr, nullptr};
     Ball *ball = nullptr;
     Player lastWinner = Player::NONE;
     Player shooter = Player::NONE;

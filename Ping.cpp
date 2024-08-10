@@ -1,17 +1,21 @@
 #include "Ping.h"
 #include "utils.h"
 
-void Ping::init(Ball *ball, Paddle *paddle1)
+void Ping::init(Ball *ball, Paddle *paddle1, Paddle *paddle2)
 {
     this->ball = ball;
     this->paddles[0] = paddle1;
+    this->paddles[1] = paddle2;
 }
 
 void Ping::calibrate()
 {
-    // this->paddles[0]->runCalibration();
-    // this->paddles[1]->runCalibration();
+    Paddle::calibrate();
+
+    this->gameState = GameState::STAND_BY;
     this->ball->calibrate();
+    this->ball->setposition(0, 0);
+    return;
 
     // this->gameState = GameState::STAND_BY;
     this->gameState = GameState::MATCH_INIT;
@@ -28,15 +32,17 @@ void Ping::initMatch()
     Serial.print("Shooter:");
     Serial.println(this->shooter);
 
-    if(this->shooter == Player::Player1) 
+    if (this->shooter == Player::Player1)
     {
         Serial.println("Center player 1");
         // shoots (0 pi)
         this->ball->setposition(this->ball->limits.x >> 1, SAFEZONE_WIDTH);
-    } else {
+    }
+    else
+    {
         // shoots (pi,2pi)
         Serial.println("Center player 2");
-        this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
+        this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y);
     }
 
     Serial.println("Wait run start");
@@ -79,7 +85,7 @@ void Ping::serveMatch()
     //     this->ball->shootAngle(angle);
     //     this->gameState = GameState::SERVE_PROGRESS;
     // }
-    
+
     return;
 }
 
@@ -88,7 +94,8 @@ void Ping::serveProgress()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    if(ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y){
+    if (ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y)
+    {
         delay(20);
         return;
     }
@@ -101,14 +108,14 @@ void Ping::bounceProgess()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    if(ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
+    if (ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
     {
         this->ball->stopNow();
         GameState::STAND_BY;
         return;
     }
 
-    if(ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
+    if (ballLimits.x - SAFEZONE_WIDTH <= ballPosition.x || SAFEZONE_WIDTH >= ballPosition.x)
     {
         delay(1);
         return;
@@ -122,7 +129,7 @@ void Ping::runMatch()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    if(ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
+    if (ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
     {
         // Danger
         Serial.println("Danger");
@@ -147,8 +154,6 @@ void Ping::runMatch()
         Player nextShooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
 
         // this->paddles[(int)nextShooter]->getPosition();
-             
-
 
         this->shooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
         this->ball->stopNow();
@@ -165,7 +170,7 @@ void Ping::runMatch()
 
 void Ping::centerProgress()
 {
-    while(this->ball->needsToMove())
+    while (this->ball->needsToMove())
     {
         delay(20);
         return;
