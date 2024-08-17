@@ -33,22 +33,24 @@ void AxisStepper::init(int step, int dir)
     this->stepper.dir_pin = dir;
 };
 
-void AxisStepper::singleStep()
+bool AxisStepper::singleStep()
 {
     if (clearTimes[this->id].enabled || clearTimes[this->id + 2].enabled || this->direction == StepDirection::NONE)
     {
-        return;
+        return false;
     }
 
-    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == 2000)))
+    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == 1980)))
     {
-        return;
+        return false;
     }
 
     this->position += this->direction;
     digitalWriteFast(this->stepper.step_pin, HIGH);
     clearTimes[this->id].enabled = true;
     clearTimes[this->id].time = micros();
+
+    return true;
 }
 
 void AxisStepper::step()

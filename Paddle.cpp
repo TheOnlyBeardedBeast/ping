@@ -48,7 +48,7 @@ void Paddle::center()
 
 void Paddle::runCenter()
 {
-    if (this->_stepper->position < 1000)
+    if (this->_stepper->position < 980)
     {
         this->_stepper->setDirection(StepDirection::FORWARD);
     }
@@ -57,7 +57,7 @@ void Paddle::runCenter()
         this->_stepper->setDirection(StepDirection::BACKWARD);
     }
 
-    while (this->_stepper->position != 1000)
+    while (this->_stepper->position != 980)
     {
         this->_stepper->singleStep();
         delayMicroseconds(500);
@@ -104,8 +104,8 @@ void Paddle::singleStep()
 {
     if (this->stepIndex == 0)
     {
-        this->_stepper->singleStep();
-        if (this->onStepChange)
+
+        if (this->_stepper->singleStep() && this->onStepChange)
         {
             this->onStepChange();
         }
@@ -272,8 +272,8 @@ void Paddle::centerAll()
     Paddle *p1 = Paddle::instances[0];
     Paddle *p2 = Paddle::instances[1];
 
-    p1->_stepper->setTarget(1000);
-    p2->_stepper->setTarget(1000);
+    p1->_stepper->setTarget(980);
+    p2->_stepper->setTarget(980);
     delay(1);
 
     // bool centered[2] = {false, false};

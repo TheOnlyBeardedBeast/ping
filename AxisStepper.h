@@ -26,7 +26,7 @@ public:
     void init(int step, int dir);
 
     void step();
-    void singleStep();
+    bool singleStep();
 
     void setTarget(long newDistance);
     long getPosition()

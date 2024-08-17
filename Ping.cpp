@@ -15,8 +15,8 @@ void Ping::calibrate()
     // this->gameState = GameState::STAND_BY;
     this->ball->calibrate();
 
-    Paddle::instances[0]->_stepper->setTarget(1000);
-    Paddle::instances[1]->_stepper->setTarget(1000);
+    Paddle::instances[0]->_stepper->setTarget(980);
+    Paddle::instances[1]->_stepper->setTarget(980);
     // Paddle::attachPaddles();
     this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y >> 1);
 
@@ -177,7 +177,7 @@ void Ping::runMatch()
 
 void Ping::centerProgress()
 {
-    if (Paddle::instances[0]->_stepper->position != 1000 || Paddle::instances[1]->_stepper->position != 1000)
+    if (Paddle::instances[0]->_stepper->position != 980 || Paddle::instances[1]->_stepper->position != 980)
     {
         Paddle::instances[0]->_stepper->step();
         Paddle::instances[1]->_stepper->step();
