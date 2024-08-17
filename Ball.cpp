@@ -289,40 +289,34 @@ void Ball::bounce()
     // float x = sin(this->lastAngle);
     // float y = cos(this->lastAngle);
     // DEBUG
-    Serial.println("Bounce call");
-    // END
-    if (this->lastAngle < PI)
-    {
-        this->shootAngle((float)PI - this->lastAngle);
-    }
-    else
-    {
-        this->shootAngle(((float)(PI * 2)) - this->lastAngle + (float)PI);
-    }
+    // Serial.println("Bounce call");
+    // // END
+    // if (this->lastAngle < PI)
+    // {
+    //     this->shootAngle((float)PI - this->lastAngle);
+    // }
+    // else
+    // {
+    //     this->shootAngle(((float)(PI * 2)) - this->lastAngle + (float)PI);
+    // }
     // shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
+    float bouncingAngle = fmodf(PI + lastAngle, 2 * PI);
+    this->shootAngle(bouncingAngle);
 }
 
 void Ball::shootAngle(float rads)
 {
     this->lastAngle = rads;
-    Point position = this->getPosition();
+    // Calculate the position of the ball before shooting
+    Point currentPosition = this->getPosition();
 
-    float tanrads = tan(rads);
-    bool SHOOT_LEFT = rads > PI * 0.5 && rads < PI * 1.5;
+    // Calculate the new position of the ball based on the angle
+    float rotatedAngle = angleRadians - 0.5 * PI;
+    float newX = currentPosition.x + cos(rotatedAngle) * this->limits.x;
+    float newY = currentPosition.y + sin(rotatedAngle) * this->limits.y;
 
-    double adjacent = SHOOT_LEFT ? -(this->limits.x - position.x) - SAFEZONE_WIDTH : (position.x) - SAFEZONE_WIDTH;
-    float opposite = adjacent * tanrads;
-
-    this->setposition(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH, position.y + opposite);
-    // DEBUG
-    Serial.println("Shoot call");
-    Serial.print("Angle:");
-    Serial.println(rads);
-    Serial.print("x:");
-    Serial.println(SHOOT_LEFT ? this->limits.x - SAFEZONE_WIDTH : SAFEZONE_WIDTH);
-    Serial.print("y:");
-    Serial.println(position.y + opposite);
-    // END
+    // Update the position of the ball
+    this->setPosition(newX, newY);
 }
 
 void Ball::stopNow()
