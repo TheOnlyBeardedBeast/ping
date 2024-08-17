@@ -11,9 +11,9 @@ extern XYS xyStepper;
 extern Paddle p1;
 extern Paddle p2;
 
-ClearTarget cleanTarget0, cleanTarget1, cleanTarget2, cleanTarget3;
+ClearTarget cleanTarget0, cleanTarget1, cleanTarget2, cleanTarget3, cleanTarget4, cleanTarget5;
 
-ClearTarget clearTimes[4] = {cleanTarget0, cleanTarget1, cleanTarget2, cleanTarget3};
+ClearTarget clearTimes[6] = {cleanTarget0, cleanTarget1, cleanTarget2, cleanTarget3, cleanTarget4, cleanTarget5};
 
 void runClear(int target)
 {
@@ -32,19 +32,23 @@ void runClear(int target)
     case 2:
     {
         p1Stepper.clearDirection();
+        break;
     }
     case 3:
     {
         p2Stepper.clearDirection();
+        break;
     }
-    // case 4:
-    // {
-    //     p1.clearSingleStep();
-    // }
-    // case 5:
-    // {
-    //     p2.clearSingleStep();
-    // }
+    case 4:
+    {
+        xyStepper.clearStep();
+        break;
+    }
+    case 5:
+    {
+        xyStepper.clearDirection();
+        break;
+    }
     default:
         return;
     }
@@ -52,7 +56,7 @@ void runClear(int target)
 
 void clearSteps()
 {
-    for (size_t i = 0; i < 4; i++)
+    for (size_t i = 0; i < 6; i++)
     {
         if (clearTimes[i].enabled && (micros() - clearTimes[i].time) >= 10)
         {

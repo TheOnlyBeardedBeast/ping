@@ -35,12 +35,12 @@ void AxisStepper::init(int step, int dir)
 
 void AxisStepper::singleStep()
 {
-    if (clearTimes[this->id].enabled || clearTimes[this->id + 2].enabled || this->direction == AxisStepper::StepDirection::NONE)
+    if (clearTimes[this->id].enabled || clearTimes[this->id + 2].enabled || this->direction == StepDirection::NONE)
     {
         return;
     }
 
-    if (this->calibrated && ((this->direction == AxisStepper::StepDirection::BACKWARD && this->position == 0) || (this->direction == AxisStepper::StepDirection::FORWARD && this->position == 2000)))
+    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == 2000)))
     {
         return;
     }
@@ -69,7 +69,7 @@ void AxisStepper::step()
     this->singleStep();
     this->distanceRun++;
 
-    this->nextStepAt = micros() + 500;
+    this->nextStepAt = micros() + 800;
 };
 
 void AxisStepper::setTarget(long newPosition)

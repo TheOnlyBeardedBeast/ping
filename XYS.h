@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Models/Directable.h"
 #if defined(ARDUINO_GIGA)
 #include "Portenta_H7_TimerInterrupt.h"
 #elif defined(ARDUINO_SAM_DUE)
@@ -17,12 +18,6 @@ struct XYStepper
     uint16_t dir_mask;
     // TODO: store pin mask for step
     // TODO: store pin mask for dir
-};
-
-enum StepDirection
-{
-    FORWARD = 1,
-    BACKWARD = -1,
 };
 
 enum MainAxis
@@ -79,7 +74,8 @@ public:
     {
         return this->moving;
     }
-    StepDirection direction = StepDirection::FORWARD;
+    StepDirection direction = StepDirection::NONE;
+    void setDirection(StepDirection _direction);
     // long targetX = 0;
     // long targetY = 0;
     volatile long x = 0;
@@ -161,8 +157,9 @@ public:
         Serial.println(this->err);
     }
 
-    void stepLeft();
-    void stepRight();
+    void singleStep();
+    void clearStep();
+    void clearDirection() {};
 
 // Timer
 #if defined(ARDUINO_GIGA)

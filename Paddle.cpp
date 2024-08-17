@@ -5,7 +5,9 @@
 #define CLAMP(value, minValue, maxValue) ((value) < (minValue) ? (minValue) : ((value) > (maxValue) ? (maxValue) : (value)))
 
 #define ENCODER_RESOLUTION 600
-// #include "ClearTarget.h"
+#include "ClearTarget.h"
+
+extern void clearSteps();
 
 // extern ClearTarget clearTimes[6];
 
@@ -21,7 +23,6 @@ Paddle::Paddle()
     // this->_lastTime = 0;
     // this->_currentTime = 0;
     // this->_deltaTime = 0;
-    this->smoother = DirectionSmoother();
     this->lastRunA = 0;
     this->lastRunB = 0;
 }
@@ -49,11 +50,11 @@ void Paddle::runCenter()
 {
     if (this->_stepper->position < 1000)
     {
-        this->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        this->_stepper->setDirection(StepDirection::FORWARD);
     }
     else
     {
-        this->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        this->_stepper->setDirection(StepDirection::BACKWARD);
     }
 
     while (this->_stepper->position != 1000)
@@ -90,11 +91,24 @@ void Paddle::stop()
 // }
 // }
 
+void Paddle::setDirection(StepDirection _direction)
+{
+    this->_stepper->setDirection(_direction);
+    if (this->onDirectionChange)
+    {
+        this->onDirectionChange(_direction);
+    }
+}
+
 void Paddle::singleStep()
 {
     if (this->stepIndex == 0)
     {
         this->_stepper->singleStep();
+        if (this->onStepChange)
+        {
+            this->onStepChange();
+        }
     }
 
     this->stepIndex = (this->stepIndex + 1) % 6;
@@ -131,13 +145,13 @@ void Paddle::isrReadEncoder0()
 {
     if (!Paddle::instances[0]->readB())
     {
-        Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        Paddle::instances[0]->setDirection(StepDirection::FORWARD);
 
         Paddle::instances[0]->singleStep();
     }
     else
     {
-        Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        Paddle::instances[0]->setDirection(StepDirection::BACKWARD);
 
         Paddle::instances[0]->singleStep();
     }
@@ -148,13 +162,13 @@ void Paddle::isrReadEncoder01()
 
     if (Paddle::instances[0]->readA())
     {
-        Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        Paddle::instances[0]->setDirection(StepDirection::FORWARD);
 
         Paddle::instances[0]->singleStep();
     }
     else
     {
-        Paddle::instances[0]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        Paddle::instances[0]->setDirection(StepDirection::BACKWARD);
 
         Paddle::instances[0]->singleStep();
     }
@@ -164,13 +178,13 @@ void Paddle::isrReadEncoder10()
 {
     if (!Paddle::instances[1]->readB())
     {
-        Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        Paddle::instances[1]->setDirection(StepDirection::FORWARD);
 
         Paddle::instances[1]->singleStep();
     }
     else
     {
-        Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        Paddle::instances[1]->setDirection(StepDirection::BACKWARD);
 
         Paddle::instances[1]->singleStep();
     }
@@ -180,13 +194,13 @@ void Paddle::isrReadEncoder11()
 {
     if (Paddle::instances[1]->readA())
     {
-        Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+        Paddle::instances[1]->setDirection(StepDirection::FORWARD);
 
         Paddle::instances[1]->singleStep();
     }
     else
     {
-        Paddle::instances[1]->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+        Paddle::instances[1]->setDirection(StepDirection::BACKWARD);
 
         Paddle::instances[1]->singleStep();
     }
@@ -197,8 +211,11 @@ void Paddle::calibrate()
     Paddle *p1 = Paddle::instances[0];
     Paddle *p2 = Paddle::instances[1];
 
-    p1->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
-    p2->_stepper->setDirection(AxisStepper::StepDirection::BACKWARD);
+    p1->setDirection(StepDirection::BACKWARD);
+    p2->setDirection(StepDirection::BACKWARD);
+
+    delayMicroseconds(20);
+    clearSteps();
 
     while (!p1->_stepper->calibrated || !p2->_stepper->calibrated)
     {
@@ -222,13 +239,16 @@ void Paddle::calibrate()
             p2->_stepper->singleStep();
         }
 
-        delayMicroseconds(4000);
+        delayMicroseconds(20);
+        clearSteps();
+
+        delay(4);
     }
 
     delay(1000);
 
-    p1->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
-    p2->_stepper->setDirection(AxisStepper::StepDirection::FORWARD);
+    p1->setDirection(StepDirection::FORWARD);
+    p2->setDirection(StepDirection::FORWARD);
 
     delayMicroseconds(5);
 
@@ -236,7 +256,9 @@ void Paddle::calibrate()
     {
         p1->_stepper->singleStep();
         p2->_stepper->singleStep();
-        delayMicroseconds(4000);
+        delay(4);
+        clearSteps();
+        delayMicroseconds(3);
     }
 
     p1->_stepper->setCurrentPosition(0);
@@ -250,30 +272,34 @@ void Paddle::centerAll()
     Paddle *p1 = Paddle::instances[0];
     Paddle *p2 = Paddle::instances[1];
 
-    bool centered[2] = {false, false};
+    p1->_stepper->setTarget(1000);
+    p2->_stepper->setTarget(1000);
+    delay(1);
 
-    while (!centered[0] || !centered[1])
-    {
-        if (!centered[0] && p1->getPosition() != 1000)
-        {
-            p1->_stepper->singleStep();
-        }
-        else
-        {
-            centered[0] = true;
-        }
+    // bool centered[2] = {false, false};
 
-        if (!centered[1] && p2->getPosition() != 1000)
-        {
-            p2->_stepper->singleStep();
-        }
-        else
-        {
-            centered[1] = true;
-        }
+    // while (!centered[0] || !centered[1])
+    // {
+    //     if (!centered[0] && p1->getPosition() != 1000)
+    //     {
+    //         p1->_stepper->singleStep();
+    //     }
+    //     else
+    //     {
+    //         centered[0] = true;
+    //     }
 
-        delayMicroseconds(500);
-    }
+    //     if (!centered[1] && p2->getPosition() != 1000)
+    //     {
+    //         p2->_stepper->singleStep();
+    //     }
+    //     else
+    //     {
+    //         centered[1] = true;
+    //     }
+
+    //     delayMicroseconds(500);
+    // }
 }
 
 void Paddle::attachPaddles()

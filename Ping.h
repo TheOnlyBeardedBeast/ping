@@ -3,7 +3,7 @@
 
 enum Player
 {
-    NONE = -1,
+    NOONE = -1,
     Player1 = 0,
     Player2 = 1
 };
@@ -39,6 +39,6 @@ public:
 private:
     Paddle *paddles[2] = {nullptr, nullptr};
     Ball *ball = nullptr;
-    Player lastWinner = Player::NONE;
-    Player shooter = Player::NONE;
+    Player lastWinner = Player::NOONE;
+    Player shooter = Player::NOONE;
 };

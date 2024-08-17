@@ -1,6 +1,8 @@
 #include "Ball.h"
 #include "utils.h"
 
+Ball *Ball::instance;
+
 void Ball::setMotors(XYS *_steppers)
 {
     this->_steppers = _steppers;
@@ -115,7 +117,9 @@ void Ball::calibrate()
 
     this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
-    this->setCurrentPosition(2460, 2280);
+    this->setCurrentPosition(2400, 2280);
+    this->limits.x = 2400;
+    this->limits.y = 2280;
     delay(200);
     return;
     // while (digitalRead(30));

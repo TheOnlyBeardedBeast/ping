@@ -1,13 +1,15 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Models/Directable.h"
+
 #if defined(ARDUINO_GIGA)
 #include "Portenta_H7_TimerInterrupt.h"
 #elif defined(ARDUINO_SAM_DUE)
 #include <DueTimer.h>
 #endif
 
-class AxisStepper
+class AxisStepper : public Directable
 {
 public:
     byte id;
@@ -19,13 +21,6 @@ public:
     {
         int step_pin;
         int dir_pin;
-    };
-
-    enum StepDirection
-    {
-        FORWARD = 1,
-        BACKWARD = -1,
-        NONE = 0
     };
 
     void init(int step, int dir);
@@ -57,9 +52,6 @@ public:
     VoidCallback callback;
     void startTimer(float period);
 
-    StepDirection direction = StepDirection::FORWARD;
-    void setDirection(StepDirection dir);
-
     volatile long position = 0;
     long speed = 0;
     XYStepper stepper;
@@ -79,5 +71,8 @@ public:
     }
 
     void clearStep();
-    void clearDirection();
+
+    // inherited form directable
+    void setDirection(StepDirection dir);
+    virtual void clearDirection();
 };

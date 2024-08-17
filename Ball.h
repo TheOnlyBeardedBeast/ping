@@ -18,6 +18,8 @@ enum BouncPosition
 class Ball
 {
 public:
+    static Ball *instance;
+
     /// @brief An array which represents the limit switches visiting state
     bool calibrationState[4] = {false, false, false, false};
     Point limits;
@@ -76,6 +78,15 @@ public:
     void shootAngle(float radians);
 
     void waitRun();
+
+    static void setDirection(StepDirection _direction)
+    {
+        Ball::instance->_steppers->setDirection(_direction);
+    }
+    static void singleStep()
+    {
+        Ball::instance->_steppers->singleStep();
+    }
 
 private:
     XYS *_steppers = nullptr;

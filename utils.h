@@ -5,7 +5,7 @@
 #define SPEED 2000
 #define ACCELERATION 10 * SPEED
 #define CALIBRATION_SPEED 250
-#define SAFEZONE_WIDTH 50
+#define SAFEZONE_WIDTH 10
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)
 #define CALIBRATION_LENGTH 100000
 /// 0 for trigonometry 1 for Bresenham
@@ -143,5 +143,3 @@
 //     {6.021385919380437,3.4033920413889427},
 //     {3.4033920413889427,6.021385919380437},
 // };
-
-

@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "BallSetup.h"
 #include "Cleaner.h"
+#include "tc_lib.h"
 
 Ping ping;
 Ball ball;
@@ -14,9 +15,10 @@ AxisStepper p2Stepper;
 
 GameState prevState = GameState::STAND_BY;
 
-DueTimer clearTimer = Timer.getAvailable();
+// DueTimer clearTimer = Timer8;
 
 bool TESTED = false;
+// action_tc1_declaration();
 
 void setup()
 {
@@ -51,11 +53,11 @@ void setup()
 
   Paddle::instances[0] = &p1;
   Paddle::instances[1] = &p2;
-  Paddle::attachPaddles();
+  // Paddle::attachPaddles();
 
-  clearTimer.attachInterrupt(clearSteps);
-  clearTimer.setPeriod(5);
-  clearTimer.start();
+  // clearTimer.attachInterrupt(clearSteps);
+  // clearTimer.setPeriod(5);
+  // clearTimer.start();
 
   delay(1000);
 
@@ -78,34 +80,38 @@ void setup()
   //   delay(20);
   // }
 
-  Paddle::calibrate();
-
-  delay(1000);
-
+  // test
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // Paddle::calibrate();
   // p1._stepper->setTarget(1000);
   // p2._stepper->setTarget(1000);
-  // ball.setposition(200, 0);
 }
 
 void loop()
 {
+  clearSteps();
   // if (Paddle::calibrated)
   // {
   //   p1._stepper->step();
   //   p2._stepper->step();
   // }
+  // // return;
 
   // if (!ball.needsToMove())
   // {
   //   if (ball.getPosition().x == 0)
   //   {
-  //     ball.setposition(200, 0);
+  //     digitalWrite(LED_BUILTIN, HIGH);
+  //     ball.setposition(200, 0, 50);
   //   }
   //   else if (ball.getPosition().x == 200)
   //   {
-  //     ball.setposition(0, 0);
+  //     digitalWrite(LED_BUILTIN, LOW);
+  //     ball.setposition(0, 0, 50);
   //   }
   // }
+  // return;
+
   switch (ping.gameState)
   {
   case GameState::CALIBRATION:

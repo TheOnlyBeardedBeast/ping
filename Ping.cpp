@@ -12,47 +12,54 @@ void Ping::calibrate()
 {
     Paddle::calibrate();
 
-    this->gameState = GameState::STAND_BY;
+    // this->gameState = GameState::STAND_BY;
     this->ball->calibrate();
-    this->ball->setposition(0, 0);
-    return;
+
+    Paddle::instances[0]->_stepper->setTarget(1000);
+    Paddle::instances[1]->_stepper->setTarget(1000);
+    // Paddle::attachPaddles();
+    this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y >> 1);
 
     // this->gameState = GameState::STAND_BY;
-    this->gameState = GameState::MATCH_INIT;
+    this->gameState = GameState::CENTER_PROGRESS;
+    return;
 }
 
 void Ping::initMatch()
 {
-    if (this->lastWinner == Player::NONE)
+    if (this->lastWinner == Player::NOONE)
     {
         this->lastWinner = (Player)random(0, 2);
         this->shooter = this->lastWinner;
     }
 
-    Serial.print("Shooter:");
-    Serial.println(this->shooter);
+    // Serial.print("Shooter:");
+    // Serial.println(this->shooter);
 
     if (this->shooter == Player::Player1)
     {
-        Serial.println("Center player 1");
+        // Serial.println("Center player 1");
         // shoots (0 pi)
-        this->ball->setposition(this->ball->limits.x >> 1, SAFEZONE_WIDTH);
+        this->ball->setposition(this->ball->limits.x, this->ball->limits.y >> 1);
     }
     else
     {
         // shoots (pi,2pi)
-        Serial.println("Center player 2");
-        this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y);
+        // Serial.println("Center player 2");
+        this->ball->setposition(0, this->ball->limits.y >> 1);
     }
 
-    Serial.println("Wait run start");
+    // Serial.println("Wait run start");
     ball->waitRun();
-    Serial.println("Wait run end");
-
+    // Serial.println("Wait run end");
+    ball->setDirection(StepDirection::NONE);
+    paddles[this->shooter]->setDirectionListener(Ball::setDirection);
+    paddles[this->shooter]->setStepListener(Ball::singleStep);
     // Paddle::attachPaddles();
     // this->gameState = GameState::STAND_BY;
     Paddle::attachPaddles();
     this->gameState = GameState::MATCH_SERVE;
+    return;
 }
 
 void Ping::endMatch()
@@ -75,6 +82,7 @@ void Ping::endMatch()
 /// @brief Runs a serving step in the game, must be called in a loop
 void Ping::serveMatch()
 {
+
     // if(this->shooter == Player::Player1)
     // {
     //     auto angle = ((float)random(15, 166))/180.f*(float)PI;
@@ -96,7 +104,6 @@ void Ping::serveProgress()
 
     if (ballLimits.y - SAFEZONE_WIDTH <= ballPosition.y || SAFEZONE_WIDTH >= ballPosition.y)
     {
-        delay(20);
         return;
     }
 
@@ -170,12 +177,20 @@ void Ping::runMatch()
 
 void Ping::centerProgress()
 {
-    while (this->ball->needsToMove())
+    if (Paddle::instances[0]->_stepper->position != 1000 || Paddle::instances[1]->_stepper->position != 1000)
     {
-        delay(20);
+        Paddle::instances[0]->_stepper->step();
+        Paddle::instances[1]->_stepper->step();
+        delayMicroseconds(3);
+        return;
+    }
+
+    if (this->ball->needsToMove())
+    {
         return;
     }
 
     delay(500);
+    // this->gameState = GameState::STAND_BY;
     this->gameState = GameState::MATCH_INIT;
 }

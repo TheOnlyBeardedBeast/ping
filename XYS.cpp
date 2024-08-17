@@ -6,7 +6,11 @@
 #endif
 #include "helpers.h"
 
-#define SPEED 1600
+#include "ClearTarget.h"
+
+extern ClearTarget clearTimes[4];
+
+#define SPEED 400
 #define ACCELERATION 10 * 5000
 #define TICKS 1000000
 
@@ -229,26 +233,43 @@ void XYS::startTimer(float frequency)
 #elif defined(ARDUINO_SAM_DUE)
     this->timer->attachInterrupt(XYS::ballIsr).setPeriod(this->delayPeriod).start();
 #endif
+}
+void XYS::setDirection(StepDirection _direction)
+{
+    if (this->direction == _direction || clearTimes[5].enabled)
+    {
+        return;
+    }
+
+    this->direction = _direction;
+    digitalWriteFast(this->stepperX.dir_pin, _direction > 0 ? HIGH : LOW);
+    digitalWriteFast(this->stepperY.dir_pin, _direction < 0 ? HIGH : LOW);
+
+    clearTimes[5].enabled = true;
+    clearTimes[5].time = micros();
 };
 
-void XYS::stepLeft()
+void XYS::singleStep()
 {
+    if (clearTimes[5].enabled || clearTimes[4].enabled)
+    {
+        return;
+    }
+
     uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
 
     digitalWriteFast(stepperX.step_pin, HIGH);
-    delayMicroseconds(3);
-    digitalWriteFast(stepperX.step_pin, LOW);
-    this->x--;
+    digitalWriteFast(stepperY.step_pin, HIGH);
+    clearTimes[4].enabled = true;
+    clearTimes[4].time = micros();
+    this->y += this->direction;
 }
 
-void XYS::stepRight()
+void XYS::clearStep()
 {
-    uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
-
-    digitalToggleMask(stepMask, this->port);
-    delayMicroseconds(3);
-    digitalToggleMask(stepMask, this->port);
-    this->x++;
+    // uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
+    digitalWriteFast(stepperX.step_pin, LOW);
+    digitalWriteFast(stepperY.step_pin, LOW);
 }
 
 void XYS::ballIsr()

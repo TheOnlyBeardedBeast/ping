@@ -5,7 +5,7 @@ XYS xyStepper;
 #if defined(ARDUINO_GIGA)
 Portenta_H7_Timer xyTimer(TIM15);
 #elif defined(ARDUINO_SAM_DUE)
-DueTimer xyTimer = Timer.getAvailable();
+DueTimer xyTimer = Timer0;
 #endif
 
 extern Ball ball;
@@ -28,4 +28,5 @@ void setupBall()
     xyStepper.setTimer(&xyTimer);
 
     ball.setMotors(&xyStepper);
+    Ball::instance = &ball;
 }

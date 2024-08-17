@@ -1,6 +1,5 @@
 #pragma once
 #include <Arduino.h>
-#include "DirectionSmoother.h"
 #include "AxisStepper.h"
 
 #define SENSITIVITY 3
@@ -76,7 +75,6 @@ private:
     byte stepIndex = 0;
 
     bool running = false;
-    DirectionSmoother smoother;
 
     // unsigned int _pulseCount = 0;
     // unsigned long _lastTime = 0;
@@ -84,7 +82,24 @@ private:
     // unsigned long _deltaTime = 0;
 
     // methods
+    void setDirection(StepDirection _direction);
     void singleStep();
     int readA();
     int readB();
+
+    // callbacks
+    typedef void (*DirectionCallback)(StepDirection);
+    typedef void (*StepCallback)();
+    DirectionCallback onDirectionChange = NULL;
+    StepCallback onStepChange = NULL;
+
+public:
+    void setDirectionListener(DirectionCallback callback)
+    {
+        this->onDirectionChange = callback;
+    }
+    void setStepListener(StepCallback callback)
+    {
+        this->onStepChange = callback;
+    }
 };
