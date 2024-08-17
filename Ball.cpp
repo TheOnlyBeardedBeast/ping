@@ -291,17 +291,17 @@ void Ball::bounce()
     // DEBUG
     // Serial.println("Bounce call");
     // // END
-    // if (this->lastAngle < PI)
-    // {
-    //     this->shootAngle((float)PI - this->lastAngle);
-    // }
-    // else
-    // {
-    //     this->shootAngle(((float)(PI * 2)) - this->lastAngle + (float)PI);
-    // }
+    if (this->lastAngle < PI)
+    {
+        this->shootAngle((float)PI - this->lastAngle);
+    }
+    else
+    {
+        this->shootAngle(((float)(PI * 2)) - this->lastAngle + (float)PI);
+    }
     // shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
-    float bouncingAngle = fmodf(PI + lastAngle, 2 * PI);
-    this->shootAngle(bouncingAngle);
+    // float bouncingAngle = fmodf(PI + lastAngle, 2 * PI);
+    // this->shootAngle(bouncingAngle);
 }
 
 void Ball::shootAngle(float rads)
