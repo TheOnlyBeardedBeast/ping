@@ -82,17 +82,13 @@ void Ping::endMatch()
 /// @brief Runs a serving step in the game, must be called in a loop
 void Ping::serveMatch()
 {
+    // shooter index is either 0 or 1
+    float shooterIndex = (double)this->shooter;
 
-    // if(this->shooter == Player::Player1)
-    // {
-    //     auto angle = ((float)random(15, 166))/180.f*(float)PI;
-    //     this->ball->shootAngle(angle);
-    //     this->gameState = GameState::SERVE_PROGRESS;
-    // } else {
-    //     auto angle = ((float)random(15, 166)+180.f)/180.f*(float)PI;
-    //     this->ball->shootAngle(angle);
-    //     this->gameState = GameState::SERVE_PROGRESS;
-    // }
+    float modifier = (float)map(paddles[this->shooter]->getPosition(), 0, 1960, 15, 165);
+    float angle = (modifier + (shooterIndex * 180.f)) / 180.f * (float)PI;
+    this->ball->shootAngle(angle);
+    this->gameState = GameState::SERVE_PROGRESS;
 
     return;
 }
@@ -108,6 +104,7 @@ void Ping::serveProgress()
     }
 
     this->gameState = GameState::MATCH_RUN;
+    return;
 }
 
 void Ping::bounceProgess()
@@ -139,7 +136,6 @@ void Ping::runMatch()
     if (ballLimits.x - 20 <= ballPosition.x || 20 >= ballPosition.x)
     {
         // Danger
-        Serial.println("Danger");
         this->ball->stopNow();
         GameState::STAND_BY;
         return;
