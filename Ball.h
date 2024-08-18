@@ -86,6 +86,8 @@ public:
     static void singleStep()
     {
         Ball::instance->_steppers->singleStep();
+        Point position = Ball::instance->getPosition();
+        Ball::instance->setCurrentPosition(position.x, position.y + Ball::instance->_steppers->direction);
     }
 
 private:

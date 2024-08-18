@@ -44,12 +44,14 @@ void setup()
   p1.initializeStepper(&p1Stepper);
   p1Stepper.id = 0;
   p1.id = 0;
+  pinMode(46, INPUT_PULLUP);
 
   p2.initializeEncoder(18, 19);
   p2Stepper.init(20, 21);
   p2.initializeStepper(&p2Stepper);
   p2Stepper.id = 1;
   p2.id = 1;
+  pinMode(47, INPUT_PULLUP);
 
   Paddle::instances[0] = &p1;
   Paddle::instances[1] = &p2;

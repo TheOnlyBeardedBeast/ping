@@ -315,8 +315,11 @@ void Ball::shootAngle(float angleRadians)
     float newX = currentPosition.x + cos(rotatedAngle) * this->limits.x;
     float newY = currentPosition.y + sin(rotatedAngle) * this->limits.y;
 
+    newX = max(min(newX, this->limits.x), 0);
+    newY = max(min(newY, this->limits.y), 0);
+
     // Update the position of the ball
-    this->_steppers->setPosition(newX, newY);
+    this->setposition(newX, newY);
 }
 
 void Ball::stopNow()

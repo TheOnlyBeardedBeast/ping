@@ -236,7 +236,7 @@ void XYS::startTimer(float frequency)
 }
 void XYS::setDirection(StepDirection _direction)
 {
-    if (this->direction == _direction || clearTimes[5].enabled)
+    if (this->direction == _direction)
     {
         return;
     }
@@ -262,7 +262,6 @@ void XYS::singleStep()
     digitalWriteFast(stepperY.step_pin, HIGH);
     clearTimes[4].enabled = true;
     clearTimes[4].time = micros();
-    this->y += this->direction;
 }
 
 void XYS::clearStep()
