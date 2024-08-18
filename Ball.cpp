@@ -304,9 +304,9 @@ void Ball::bounce()
     // this->shootAngle(bouncingAngle);
 }
 
-void Ball::shootAngle(float rads)
+void Ball::shootAngle(float angleRadians)
 {
-    this->lastAngle = rads;
+    this->lastAngle = angleRadians;
     // Calculate the position of the ball before shooting
     Point currentPosition = this->getPosition();
 
@@ -316,7 +316,7 @@ void Ball::shootAngle(float rads)
     float newY = currentPosition.y + sin(rotatedAngle) * this->limits.y;
 
     // Update the position of the ball
-    this->setPosition(newX, newY);
+    this->_steppers->setPosition(newX, newY);
 }
 
 void Ball::stopNow()
