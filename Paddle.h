@@ -50,6 +50,7 @@ public:
     void center();
     void runCenter();
     long getPosition();
+    long getCenterRelativePosition();
     bool needsToMove();
     void clearSingleStep();
 

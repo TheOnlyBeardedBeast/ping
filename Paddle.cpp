@@ -131,6 +131,11 @@ long Paddle::getPosition()
     this->_stepper->getPosition();
 }
 
+long Paddle::getCenterRelativePosition()
+{
+    this->getPosition() - 980;
+}
+
 bool Paddle::needsToMove()
 {
     this->_stepper->isRunning();

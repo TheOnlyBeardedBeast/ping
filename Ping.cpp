@@ -46,13 +46,13 @@ void Ping::initMatch()
     {
         // Serial.println("Center player 1");
         // shoots (0 pi)
-        this->ball->setposition(this->ball->limits.x, this->ball->limits.y >> 1);
+        this->ball->setposition(this->ball->limits.x, (this->ball->limits.y >> 1) + paddles[0]->getCenterRelativePosition());
     }
     else
     {
         // shoots (pi,2pi)
         // Serial.println("Center player 2");
-        this->ball->setposition(0, this->ball->limits.y >> 1);
+        this->ball->setposition(0, (this->ball->limits.y >> 1) + paddles[1]->getCenterRelativePosition());
     }
 
     // Serial.println("Wait run start");
@@ -128,14 +128,6 @@ void Ping::bounceProgess()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    // Handling danger
-    // if (ballLimits.x < ballPosition.x || 0 > ballPosition.x)
-    // {
-    //     this->ball->stopNow();
-    //     GameState::STAND_BY;
-    //     return;
-    // }
-
     if (ballLimits.y == ballPosition.y || 0 == ballPosition.y)
     {
         return;
@@ -152,8 +144,6 @@ void Ping::runMatch()
     // BOUNCE
     if (ballLimits.y == ballPosition.y || 0 == ballPosition.y)
     {
-        // END
-        // ball->stopNow();
         ball->bounce();
         this->gameState = GameState::BOUNCE_PROGRESS;
         return;
