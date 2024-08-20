@@ -44,7 +44,7 @@ public:
     // methods
     void initializeEncoder(int A, int B);
     void initializeStepper(AxisStepper *stepper);
-    bool canShoot(long x);
+    byte canShoot(long x);
 
     void stop();
     void center();

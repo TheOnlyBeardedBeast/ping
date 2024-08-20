@@ -336,15 +336,32 @@ void Paddle::detachPaddles()
     detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinB));
 }
 
-bool Paddle::canShoot(long x)
+byte Paddle::canShoot(long ballPosition)
 {
-    long currentPosition = this->getPosition();
+    // long currentPosition = this->getPosition();
 
-    long ballStart = x - BALL_HALF;
-    long ballEnd = x + BALL_HALF;
+    // long ballStart = ballPosition;
+    // long ballEnd = ballPosition + BALL_WIDTH;
 
-    long paddleStart = currentPosition - PADDLE_HALF;
-    long paddleEnd = currentPosition + PADDLE_HALF;
+    // long paddleStart = currentPosition;
+    // long paddleEnd = currentPosition + PADDLE_WIDTH;
 
-    return ballStart <= paddleEnd && ballEnd >= paddleStart;
+    // return ballStart <= paddleEnd && ballEnd >= paddleStart;
+
+    long paddlePosition = this->getCenterRelativePosition();
+    long _ballPosition = ballPosition - paddlePosition;
+
+    paddlePosition = 0;
+    long paddleStart = -PADDLE_WIDTH_HALF;
+    long paddleEnd = PADDLE_WIDTH_HALF;
+
+    long ballStart = _ballPosition - BALL_WIDTH_HALF;
+    long ballEnd = _ballPosition + BALL_WIDTH_HALF;
+
+    if (ballStart <= paddleEnd && ballEnd >= paddleStart)
+    {
+        return map(_ballPosition, -PADDLE_WIDTH_HALF - BALL_WIDTH_HALF, PADDLE_WIDTH_HALF + BALL_WIDTH_HALF, 165, 15);
+    }
+
+    return 0;
 }

@@ -54,6 +54,8 @@ public:
     /// @return Poit which contains an X and an Y integer
     Point getPosition();
 
+    long getCenterRelativePosition();
+
     /// @brief Sets the ball ball position to the playfield center
     void center();
 

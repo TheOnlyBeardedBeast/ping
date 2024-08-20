@@ -119,8 +119,20 @@ void loop()
   case GameState::CALIBRATION:
     ping.calibrate();
     return;
+  case GameState::CENTER:
+    ping.center();
+    return;
+  case GameState::CENTER_PROGRESS:
+    ping.centerProgress();
+    return;
   case GameState::MATCH_INIT:
     ping.initMatch();
+    return;
+  case GameState::MATCH_INIT_PROGRESS:
+    ping.initMatchProgress();
+    return;
+  case GameState::MATCH_INIT_DONE:
+    ping.initMatchDone();
     return;
   case GameState::MATCH_SERVE:
     ping.serveMatch();
@@ -133,9 +145,6 @@ void loop()
     return;
   case GameState::BOUNCE_PROGRESS:
     ping.bounceProgess();
-    return;
-  case GameState::CENTER_PROGRESS:
-    ping.centerProgress();
     return;
   case GameState::MATCH_END:
     ping.endMatch();

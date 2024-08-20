@@ -84,6 +84,11 @@ Point Ball::getPosition()
     return result;
 }
 
+long Ball::getCenterRelativePosition()
+{
+    return (this->limits.y >> 1) - this->getPosition().y;
+}
+
 void Ball::postCalibrationStop()
 {
     this->stop();
@@ -117,9 +122,9 @@ void Ball::calibrate()
 
     this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
-    this->setCurrentPosition(2400, 2280);
+    this->setCurrentPosition(2400, 2260);
     this->limits.x = 2400;
-    this->limits.y = 2280;
+    this->limits.y = 2260; // 1step = 0.025cm // somehow 2280 works better maybe belt tension issue
     delay(200);
     return;
     // while (digitalRead(30));
