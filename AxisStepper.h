@@ -52,7 +52,7 @@ public:
     VoidCallback callback;
     void startTimer(float period);
 
-    volatile long position = 0;
+    long position = 0;
     long speed = 0;
     XYStepper stepper;
     // long lastStepAt = 0;

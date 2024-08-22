@@ -40,7 +40,7 @@ bool AxisStepper::singleStep()
         return false;
     }
 
-    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == 1980)))
+    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == 1960)))
     {
         return false;
     }

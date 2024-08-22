@@ -86,7 +86,7 @@ Point Ball::getPosition()
 
 long Ball::getCenterRelativePosition()
 {
-    return (this->limits.y >> 1) - this->getPosition().y;
+    return this->getPosition().y - (this->limits.y >> 1);
 }
 
 void Ball::postCalibrationStop()
@@ -309,21 +309,34 @@ void Ball::bounce()
     // this->shootAngle(bouncingAngle);
 }
 
+void Ball::shootDeg(uint16_t degrees)
+{
+    this->shootAngle(degrees * (float)PI / 180.f);
+}
+
 void Ball::shootAngle(float angleRadians)
 {
+    Point ballPos = this->getPosition();
+
     this->lastAngle = angleRadians;
-    // Calculate the position of the ball before shooting
-    Point currentPosition = this->getPosition();
 
-    // Calculate the new position of the ball based on the angle
-    float rotatedAngle = angleRadians - 0.5 * PI;
-    float newX = currentPosition.x + cos(rotatedAngle) * this->limits.x;
-    float newY = currentPosition.y + sin(rotatedAngle) * this->limits.y;
+    double dy = cos(angleRadians);
+    double dx = sin(angleRadians);
 
-    newX = max(min(newX, this->limits.x), 0);
-    newY = max(min(newY, this->limits.y), 0);
+    bool horizontalModifier = dy >= 0;
+    bool verticalModifier = dx >= 0;
 
-    // Update the position of the ball
+    double a = horizontalModifier ? this->limits.y - ballPos.y : ballPos.y;
+    double o = verticalModifier ? this->limits.x - ballPos.x : ballPos.x;
+
+    double ty = a / dy;
+    double tx = this->limits.x / dx;
+
+    double t = min(abs(ty), abs(tx));
+
+    int newX = ballPos.x + round(dx * t);
+    int newY = ballPos.y + round(dy * t);
+
     this->setposition(newX, newY);
 }
 

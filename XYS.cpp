@@ -10,7 +10,7 @@
 
 extern ClearTarget clearTimes[4];
 
-#define SPEED 400
+#define SPEED 800
 #define ACCELERATION 10 * 5000
 #define TICKS 1000000
 

@@ -77,6 +77,7 @@ public:
 
     /// @brief Shoots a ball in an angle and sets its position to the limits
     /// @param radians defines the angle of shooting
+    void shootDeg(uint16_t degrees);
     void shootAngle(float radians);
 
     void waitRun();

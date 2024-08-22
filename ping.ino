@@ -23,9 +23,11 @@ bool TESTED = false;
 void setup()
 {
   // Serial.begin(115200);
-  // pinMode(LED_BUILTIN,OUTPUT);
+  // // pinMode(LED_BUILTIN,OUTPUT);
 
-  // while (!Serial);
+  // while (!Serial)
+  // {
+  // };
 
   // Serial.println("available");
 

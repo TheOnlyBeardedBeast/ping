@@ -128,12 +128,12 @@ int Paddle::readB()
 
 long Paddle::getPosition()
 {
-    this->_stepper->getPosition();
+    return this->_stepper->getPosition();
 }
 
 long Paddle::getCenterRelativePosition()
 {
-    this->getPosition() - 980;
+    return this->getPosition() - 980;
 }
 
 bool Paddle::needsToMove()
@@ -360,7 +360,7 @@ byte Paddle::canShoot(long ballPosition)
 
     if (ballStart <= paddleEnd && ballEnd >= paddleStart)
     {
-        return map(_ballPosition, -PADDLE_WIDTH_HALF - BALL_WIDTH_HALF, PADDLE_WIDTH_HALF + BALL_WIDTH_HALF, 165, 15);
+        return round(map(_ballPosition, -PADDLE_WIDTH_HALF - BALL_WIDTH_HALF, PADDLE_WIDTH_HALF + BALL_WIDTH_HALF, this->id == 0 ? 33 : 3, this->id == 0 ? 3 : 33)) * 5;
     }
 
     return 0;
