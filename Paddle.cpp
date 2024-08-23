@@ -336,32 +336,29 @@ void Paddle::detachPaddles()
     detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinB));
 }
 
-byte Paddle::canShoot(long ballPosition)
+byte Paddle::canShoot(long ballPos)
 {
-    // long currentPosition = this->getPosition();
+    long paddlePos = this->getCenterRelativePosition();
 
-    // long ballStart = ballPosition;
-    // long ballEnd = ballPosition + BALL_WIDTH;
+    long paddleLeftEdge = paddlePos - PADDLE_WIDTH_HALF;
+    long paddleRightEdge = paddlePos + PADDLE_WIDTH_HALF;
+    long ballLeftEdge = ballPos - BALL_WIDTH_HALF;
+    long ballRightEdge = ballPos + BALL_WIDTH_HALF;
 
-    // long paddleStart = currentPosition;
-    // long paddleEnd = currentPosition + PADDLE_WIDTH;
+    long hitzone = PADDLE_WIDTH_HALF + BALL_WIDTH_HALF;
 
-    // return ballStart <= paddleEnd && ballEnd >= paddleStart;
-
-    long paddlePosition = this->getCenterRelativePosition();
-    long _ballPosition = ballPosition - paddlePosition;
-
-    paddlePosition = 0;
-    long paddleStart = -PADDLE_WIDTH_HALF;
-    long paddleEnd = PADDLE_WIDTH_HALF;
-
-    long ballStart = _ballPosition - BALL_WIDTH_HALF;
-    long ballEnd = _ballPosition + BALL_WIDTH_HALF;
-
-    if (ballStart <= paddleEnd && ballEnd >= paddleStart)
+    // Check if the ball is within the paddle's bounds
+    if (ballRightEdge >= paddleLeftEdge && ballLeftEdge <= paddleRightEdge)
     {
-        return round(map(_ballPosition, -PADDLE_WIDTH_HALF - BALL_WIDTH_HALF, PADDLE_WIDTH_HALF + BALL_WIDTH_HALF, this->id == 0 ? 33 : 3, this->id == 0 ? 3 : 33)) * 5;
-    }
+        // Calculate the difference in positions
+        double relativePosition = (ballPos - paddlePos);
 
-    return 0;
+        // Map the relative position to an angle between 30 and 150 degrees
+        return round(map(relativePosition, -hitzone, hitzone, 30, 150));
+    }
+    else
+    {
+        // No collision
+        return 0;
+    }
 }

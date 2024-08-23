@@ -291,34 +291,25 @@ bool Ball::needsToMove()
 
 void Ball::bounce()
 {
-    // float x = sin(this->lastAngle);
-    // float y = cos(this->lastAngle);
-    // DEBUG
-    // Serial.println("Bounce call");
-    // // END
-    if (this->lastAngle < PI)
+    if (this->lastAngle < 180)
     {
-        this->shootAngle((float)PI - this->lastAngle);
+        this->shootDeg(180 - this->lastAngle);
     }
     else
     {
-        this->shootAngle(((float)(PI * 2)) - this->lastAngle + (float)PI);
+        this->shootDeg(540 - this->lastAngle);
     }
-    // shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
-    // float bouncingAngle = fmodf(PI + lastAngle, 2 * PI);
-    // this->shootAngle(bouncingAngle);
 }
 
 void Ball::shootDeg(uint16_t degrees)
 {
-    this->shootAngle(degrees * (float)PI / 180.f);
+    this->lastAngle = degrees;
+    this->shootAngle((float)degrees * (float)PI / 180.f);
 }
 
 void Ball::shootAngle(float angleRadians)
 {
     Point ballPos = this->getPosition();
-
-    this->lastAngle = angleRadians;
 
     double dy = cos(angleRadians);
     double dx = sin(angleRadians);
@@ -334,8 +325,8 @@ void Ball::shootAngle(float angleRadians)
 
     double t = min(abs(ty), abs(tx));
 
-    int newX = ballPos.x + round(dx * t);
-    int newY = ballPos.y + round(dy * t);
+    int newX = constrain(ballPos.x + round(dx * t), 0, this->limits.x);
+    int newY = constrain(ballPos.y + round(dy * t), 0, this->limits.y);
 
     this->setposition(newX, newY);
 }

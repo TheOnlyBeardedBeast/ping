@@ -67,7 +67,7 @@ public:
     bool needsToMove();
 
     /// @brief angle the ball used last time
-    float lastAngle;
+    uint16_t lastAngle;
     float lastVectorX;
     float lastVectorY;
     float lastSpeed;

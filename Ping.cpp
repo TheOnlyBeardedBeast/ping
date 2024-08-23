@@ -103,7 +103,7 @@ void Ping::serveMatch()
         Paddle::instances[(int)this->shooter]->setStepListener(NULL);
         delay(1);
 
-        float modifier = this->shooter == Player::Player1 ? (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 3, 33) : (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 33, 3);
+        float modifier = this->shooter == Player::Player1 ? (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 6, 30) : (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 30, 6);
         float angle = ((modifier * 5.f) + (this->shooter == Player::Player1 ? 180.f : 0.0f));
 
         this->ball->shootDeg(angle);
@@ -130,23 +130,16 @@ void Ping::serveProgress()
 
 void Ping::runMatch()
 {
-
-    Point ballPosition = this->ball->getPosition();
-    Point ballLimits = this->ball->limits;
-
-    // DANGER MOVEMENT
-    if (ballPosition.x < 0 || ballPosition.y > 2260 || ballPosition.x < 0 || ballPosition.x > 2400)
-    {
-        ball->stopNow();
-    }
-
     if (this->ball->needsToMove())
     {
         return;
     }
 
+    Point ballPosition = this->ball->getPosition();
+    Point ballLimits = this->ball->limits;
+
     // BOUNCE
-    if (ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
+    if (ballLimits.y == ballPosition.y || 0 == ballPosition.y)
     {
         ball->bounce();
         this->gameState = GameState::BOUNCE_PROGRESS;
@@ -154,7 +147,7 @@ void Ping::runMatch()
     }
 
     // POINT OR PADDLE HIT
-    if (ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
+    if (ballLimits.x == ballPosition.x || 0 == ballPosition.x)
     {
         // Serial.println("end line");
         Player nextShooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
@@ -165,6 +158,11 @@ void Ping::runMatch()
         // Serial.println(shot);
         if (shot != 0)
         {
+            if (nextShooter == Player::Player2)
+            {
+                shot = map(shot, 30, 150, 150, 30);
+            }
+
             float angle = (shot + (nextShooter == Player::Player1 ? 180.f : 0.0f));
             this->ball->shootDeg(angle);
             this->shooter = nextShooter;
