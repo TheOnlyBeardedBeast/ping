@@ -106,176 +106,28 @@ void Ball::waitRun()
 
 void Ball::calibrate()
 {
-    // Serial.println("Calibration methiod");
-    // #if (DEBUG == 1)
-    //         Serial.println("calibration start");
-    //     #endif
-    // Initialize visited limit switch array
     this->initCalibration();
-
-    // Looking for the left edge
-    // -10000,0 = -10000,-10000
-    // this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
 
     BoolCallback leftLimitHit = []()
     { return digitalRead(LS1) == HIGH ? true : false; };
 
     this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
-    this->setCurrentPosition(2400, 2260);
-    this->limits.x = 2400;
-    this->limits.y = 2260; // 1step = 0.025cm // somehow 2280 works better maybe belt tension issue
+    this->setCurrentPosition(GAMEPLAY_AREA_X, GAMEPLAY_AREA_Y);
+    this->limits.x = GAMEPLAY_AREA_X;
+    this->limits.y = GAMEPLAY_AREA_Y; // 1step = 0.025cm // somehow 2280 works better maybe belt tension issue
     delay(200);
     return;
-    // while (digitalRead(30));
-    // {
-    //     // #if DEBUG == 1
-    //     //     Serial.println("Wait left");
-    //     // #endif
-    // }
-
-    // this->stop();
-    // this->postCalibrationStop();
-    // delay(1000);
-
-    // Looking for the top edge
-    // -1000,-10000 = -11000, 9000
-    BoolCallback topLimitHit = []()
-    { return digitalRead(LS2) == HIGH ? true : false; };
-
-    this->_steppers->moveWhile(LOW, HIGH, CALIBRATION_SPEED, topLimitHit);
-    delay(200);
-    // this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
-    // while (digitalRead(32));
-    // {
-    //     // #if (DEBUG == 1)
-    //     //     Serial.println("Wait top");
-    //     // #endif
-    // }
-
-    // this->stop();
-    // this->postCalibrationStop();
-    // delay(1000);
-
-    // If we have the left and the bottom edge we can set our origin point
-    // this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
-    // this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
-
-    // // DEBUG
-    // Point debugPoint =  this->getPosition();
-    // Serial.println("Before low limit set");
-    // Serial.print("x:");
-    // Serial.println(debugPoint.x);
-    // Serial.print("y:");
-    // Serial.println(debugPoint.y);
-    // // END
-
-    this->_steppers->setCurrentPosition(0, 0);
-
-    // // DEBUG
-    // debugPoint =  this->getPosition();
-    // Serial.println("After low limit set");
-    // Serial.print("x:");
-    // Serial.println(debugPoint.x);
-    // Serial.print("y:");
-    // Serial.println(debugPoint.y);
-    // // END
-
-    // Looking for the bottom edge
-    // 0, 10000
-    BoolCallback bottomLimitHit = []()
-    { return digitalRead(LS3) == HIGH ? true : false; };
-
-    this->_steppers->moveWhile(HIGH, LOW, CALIBRATION_SPEED, bottomLimitHit);
-    delay(200);
-    // this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
-    // while (digitalRead(34));
-    // {
-    //     // #if (DEBUG == 1)
-    //     //     Serial.println("Wait bottom");
-    //     // #endif
-    // }
-
-    // this->stop();
-    // this->postCalibrationStop();
-    // delay(1000);
-
-    Point midCalibrationPosition = this->getPosition();
-    this->limits.y = midCalibrationPosition.y;
-
-#if defined(ARDUINO_GIGA)
-    digitalWrite(LEDB, HIGH);
-#elif defined(ARDUINO_SAM_DUE)
-    digitalWrite(LED_BUILTIN, HIGH);
-#endif
-    this->setposition(0, this->limits.y >> 1, CALIBRATION_SPEED);
-    // this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
-
-    waitRun();
-#if defined(ARDUINO_GIGA)
-    digitalWrite(LEDB, LOW);
-#elif defined(ARDUINO_SAM_DUE)
-    digitalWrite(LED_BUILTIN, LOW);
-#endif
-
-    // Looking for the right edge
-    // this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
-    // while (digitalRead(36));
-    BoolCallback rightLimitHit = []()
-    { return digitalRead(LS4) == HIGH ? true : false; };
-
-    this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, rightLimitHit);
-    delay(200);
-    // {
-    //     // #if (DEBUG == 1)
-    //     //     Serial.println("Wait right");
-    //     // #endif
-
-    // }
-
-    // this->stop();
-    // this->postCalibrationStop();
-    // delay(1000);
-
-    // Setting the max limit for the axes
-    Point position = this->getPosition();
-    this->limits.x = position.x;
-    // this->limits.y = position.y - SAFEZONE_WIDTH;
-
-    // // DEBUG
-    // Serial.println("After high limit set");
-    // Serial.print("x:");
-    // Serial.println(this->limits.x);
-    // Serial.print("y:");
-    // Serial.println(this->limits.y);
-    // // END
-
-    // Center the ball
-    this->runCenter();
-
-    delay(5000);
-#if defined(ARDUINO_GIGA)
-    digitalWrite(LEDB, HIGH);
-#elif defined(ARDUINO_SAM_DUE)
-    digitalWrite(LED_BUILTIN, HIGH);
-#endif
 }
 
 void Ball::initCalibration()
 {
-    this->calibrationState[0] = false;
-    this->calibrationState[1] = false;
     this->_steppers->setCurrentPosition(0, 0);
 }
 
 void Ball::runCenter()
 {
     this->center();
-
-    this->waitRun();
-
-    this->stop();
-
     this->waitRun();
 }
 

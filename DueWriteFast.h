@@ -19,10 +19,6 @@ static inline void digitalWriteFast(pin_size_t pin, PinStatus val)
     {
         port->PIO_CODR = mask; // CODR sets LOW based on 1s in the mask
     }
-    // Serial.println("WRITE");
-    // Serial.println(pin);
-    // Serial.println(val);
-    // digitalWrite(pin,val);
 }
 
 static inline void digitalToggleMask(uint16_t mask, Pio *port) __attribute__((always_inline, unused));
