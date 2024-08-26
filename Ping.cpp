@@ -21,8 +21,8 @@ void Ping::calibrate()
 
 void Ping::center()
 {
-    Paddle::instances[0]->_stepper->setTarget(980);
-    Paddle::instances[1]->_stepper->setTarget(980);
+    Paddle::instances[0]->_stepper->setTarget(PADDLE_CENTER);
+    Paddle::instances[1]->_stepper->setTarget(PADDLE_CENTER);
 
     this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y >> 1);
 
@@ -31,7 +31,7 @@ void Ping::center()
 
 void Ping::centerProgress()
 {
-    if (Paddle::instances[0]->_stepper->position != 980 || Paddle::instances[1]->_stepper->position != 980)
+    if (Paddle::instances[0]->_stepper->position != PADDLE_CENTER || Paddle::instances[1]->_stepper->position != PADDLE_CENTER)
     {
         Paddle::instances[0]->_stepper->step();
         Paddle::instances[1]->_stepper->step();
@@ -44,6 +44,7 @@ void Ping::centerProgress()
     }
 
     delay(500);
+    // TODO: put the game into stand by mode so the game can be started by the ball shooting button
     // this->gameState = GameState::STAND_BY;
     this->gameState = GameState::MATCH_INIT;
 }
@@ -82,8 +83,7 @@ void Ping::initMatchDone()
 {
     ball->setDirection(StepDirection::NONE);
 
-    paddles[this->shooter]->setDirectionListener(Ball::setDirection);
-    paddles[this->shooter]->setStepListener(Ball::singleStep);
+    paddles[this->shooter]->subscribe(Ball::setDirection, Ball::singleStep);
 
     Paddle::attachPaddles();
 
@@ -93,14 +93,11 @@ void Ping::initMatchDone()
 /// @brief Runs a serving step in the game, must be called in a loop
 void Ping::serveMatch()
 {
-
-    // shooter index is either 0 or 1
     size_t inputPin = this->shooter == 0 ? 47 : 46;
 
     if (!digitalRead(inputPin))
     {
-        Paddle::instances[(int)this->shooter]->setDirectionListener(NULL);
-        Paddle::instances[(int)this->shooter]->setStepListener(NULL);
+        Paddle::instances[(int)this->shooter]->unsubScribe();
         delay(1);
 
         float modifier = this->shooter == Player::Player1 ? (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 6, 30) : (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 30, 6);
@@ -139,7 +136,7 @@ void Ping::runMatch()
     Point ballLimits = this->ball->limits;
 
     // BOUNCE
-    if (ballLimits.y == ballPosition.y || 0 == ballPosition.y)
+    if ((ballLimits.y == ballPosition.y || 0 == ballPosition.y) && ballPosition.x != 0 && ballPosition.x != ballLimits.x)
     {
         ball->bounce();
         this->gameState = GameState::BOUNCE_PROGRESS;
@@ -149,13 +146,11 @@ void Ping::runMatch()
     // POINT OR PADDLE HIT
     if (ballLimits.x == ballPosition.x || 0 == ballPosition.x)
     {
-        // Serial.println("end line");
+
         Player nextShooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
 
-        // byte shot = 90;
-        // Serial.println(ball->getCenterRelativePosition());
         byte shot = Paddle::instances[(int)nextShooter]->canShoot(ball->getCenterRelativePosition());
-        // Serial.println(shot);
+
         if (shot != 0)
         {
             if (nextShooter == Player::Player2)
@@ -183,15 +178,6 @@ void Ping::endMatch()
 {
     delay(1000);
     this->ball->center();
-
-    // this->paddles[0]->center();
-    // this->paddles[1]->center();
-
-    // while (paddles[0]->needsToMove() || paddles[1]->needsToMove())
-    // {
-    //     paddles[0]->run();
-    //     paddles[1]->run();
-    // }
 
     this->gameState = GameState::CENTER_PROGRESS;
 }

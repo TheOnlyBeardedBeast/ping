@@ -18,13 +18,12 @@ bool Paddle::calibrated = false;
 
 Paddle::Paddle()
 {
-    this->direction = CW;
     // this->_pulseCount = 0;
     // this->_lastTime = 0;
     // this->_currentTime = 0;
     // this->_deltaTime = 0;
-    this->lastRunA = 0;
-    this->lastRunB = 0;
+    // this->lastRunA = 0;
+    // this->lastRunB = 0;
 }
 
 void Paddle::initializeEncoder(int A, int B)
@@ -43,12 +42,12 @@ void Paddle::initializeStepper(AxisStepper *stepper)
 
 void Paddle::center()
 {
-    this->_stepper->setTarget(this->max >> 1);
+    this->_stepper->setTarget(PADDLE_CENTER);
 }
 
 void Paddle::runCenter()
 {
-    if (this->_stepper->position < 980)
+    if (this->_stepper->position < PADDLE_CENTER)
     {
         this->_stepper->setDirection(StepDirection::FORWARD);
     }
@@ -57,7 +56,7 @@ void Paddle::runCenter()
         this->_stepper->setDirection(StepDirection::BACKWARD);
     }
 
-    while (this->_stepper->position != 980)
+    while (this->_stepper->position != PADDLE_CENTER)
     {
         this->_stepper->singleStep();
         delayMicroseconds(500);
@@ -68,28 +67,6 @@ void Paddle::stop()
 {
     this->_stepper->stop();
 }
-
-// void Paddle::singleStep()
-// {
-// if (clearTimes[this->id + 4].enabled)
-// {
-//     return;
-// }
-
-// uint32_t currentStep = micros();
-// uint32_t minTime = this->lastStep + 1000;
-
-// if (this->lastStep > currentStep - 1000)
-// {
-//     clearTimes[this->id + 4].enabled = true;
-//     clearTimes[this->id + 4].time = minTime;
-// }
-// else
-// {
-//     this->_stepper->singleStep();
-//     this->lastStep = currentStep;
-// }
-// }
 
 void Paddle::setDirection(StepDirection _direction)
 {
@@ -111,7 +88,7 @@ void Paddle::singleStep()
         }
     }
 
-    this->stepIndex = (this->stepIndex + 1) % 6;
+    this->stepIndex = (this->stepIndex + 1) % PADDLE_SENSITIVITY;
 }
 
 int Paddle::readA()
@@ -133,7 +110,7 @@ long Paddle::getPosition()
 
 long Paddle::getCenterRelativePosition()
 {
-    return this->getPosition() - 980;
+    return this->getPosition() - PADDLE_CENTER;
 }
 
 bool Paddle::needsToMove()
@@ -277,34 +254,9 @@ void Paddle::centerAll()
     Paddle *p1 = Paddle::instances[0];
     Paddle *p2 = Paddle::instances[1];
 
-    p1->_stepper->setTarget(980);
-    p2->_stepper->setTarget(980);
+    p1->_stepper->setTarget(PADDLE_CENTER);
+    p2->_stepper->setTarget(PADDLE_CENTER);
     delay(1);
-
-    // bool centered[2] = {false, false};
-
-    // while (!centered[0] || !centered[1])
-    // {
-    //     if (!centered[0] && p1->getPosition() != 1000)
-    //     {
-    //         p1->_stepper->singleStep();
-    //     }
-    //     else
-    //     {
-    //         centered[0] = true;
-    //     }
-
-    //     if (!centered[1] && p2->getPosition() != 1000)
-    //     {
-    //         p2->_stepper->singleStep();
-    //     }
-    //     else
-    //     {
-    //         centered[1] = true;
-    //     }
-
-    //     delayMicroseconds(500);
-    // }
 }
 
 void Paddle::attachPaddles()
