@@ -17,7 +17,8 @@
 #define BALLSTEPPER_B_STP 28
 #define BALLSTEPPER_B_DIR 29
 
+// 1step = 0.025cm
 #define PADDLE_WIDTH 300 // 7.5 cm
 #define PADDLE_WIDTH_HALF 150
-#define BALL_WIDTH 140 // 3.5 cm
+#define BALL_WIDTH 140 // 3.5 cm, will change to 2.5cm
 #define BALL_WIDTH_HALF 70
