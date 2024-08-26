@@ -79,6 +79,7 @@ public:
     /// @param radians defines the angle of shooting
     void shootDeg(uint16_t degrees);
     void shootAngle(float radians);
+    uint16_t inverseAngle(int16_t angle);
 
     void waitRun();
 

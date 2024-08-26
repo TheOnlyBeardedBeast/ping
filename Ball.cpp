@@ -311,6 +311,14 @@ void Ball::shootAngle(float angleRadians)
 {
     Point ballPos = this->getPosition();
 
+    if ((ballPos.y == this->limits.y &&
+         (this->lastAngle < 90 || this->lastAngle > 270)) ||
+        (ballPos.y == 0 &&
+         (this->lastAngle > 90 && this->lastAngle < 270)))
+    {
+        return this->shootDeg(this->inverseAngle(this->lastAngle));
+    }
+
     double dy = cos(angleRadians);
     double dx = sin(angleRadians);
 
@@ -321,7 +329,7 @@ void Ball::shootAngle(float angleRadians)
     double o = verticalModifier ? this->limits.x - ballPos.x : ballPos.x;
 
     double ty = a / dy;
-    double tx = this->limits.x / dx;
+    double tx = o / dx;
 
     double t = min(abs(ty), abs(tx));
 
@@ -329,6 +337,16 @@ void Ball::shootAngle(float angleRadians)
     int newY = constrain(ballPos.y + round(dy * t), 0, this->limits.y);
 
     this->setposition(newX, newY);
+}
+
+uint16_t Ball::inverseAngle(int16_t angle)
+{
+    if (angle < 180)
+    {
+        return 180 - angle;
+    }
+
+    return 540 - angle;
 }
 
 void Ball::stopNow()
