@@ -23,46 +23,10 @@ void Ball::setCurrentPosition(int x, int y)
 
 void Ball::setposition(int x, int y, int speed)
 {
-    // Calculating absolute A and B motor position from absolute X and Y coordinates
-    // Formula used for corexy and h-bot positioning
     int a = x + y;
     int b = x - y;
 
-    // int a0 = this->_steppers->getX();
-    // int b0 = this->_steppers->getY();
-
-    // this->dx = abs(a - a0);
-    // this->dy = abs(b - b0);
-
-    // // Calculating the angle in radians fo the next relative movement
-    // #if (LINE == 0)
-    //     double rads = atan(((double)this->dy) / ((double)this->dx));
-    // #endif
-
-    // Point currentPosition = this->getPosition();
-    // // this->lastAngle = atan(double(currentPosition.x - x) / double(currentPosition.y - y));
-    // // Separating the movement into its vectors
-    // // amodifier^2 + bmodifier^2 = 1^2
-    // // amodifier^2 + bmodifier^2 = 1
-    // // (amodifier*speed)^2 + (bmodifier*speed)^2 = speed^2
-    // #if(LINE == 0)
-    //     double amodifier = cos(rads);
-    //     double bmodifier = sin(rads);
-    // #endif
-
     this->_steppers->setPosition(a, b);
-
-    // #if (LINE == 1)
-    //     this->_stepperA->setMaxSpeed(speed);
-    //     this->_stepperA->setAcceleration(ACCELERATION);
-    //     this->_stepperB->setMaxSpeed(speed);
-    //     this->_stepperB->setAcceleration(ACCELERATION);
-    // # else
-    //     this->_stepperA->setMaxSpeed(amodifier * speed);
-    //     this->_stepperA->setAcceleration(amodifier * ACCELERATION);
-    //     this->_stepperB->setMaxSpeed(bmodifier * speed);
-    //     this->_stepperB->setAcceleration(bmodifier * ACCELERATION);
-    // #endif
 }
 
 void Ball::stop()
@@ -72,11 +36,9 @@ void Ball::stop()
 
 Point Ball::getPosition()
 {
-    // Getting A and B stepper position
     long a = this->_steppers->getX();
     long b = this->_steppers->getY();
 
-    // Creating the result struct and converting motor positions to X and Y coordinated
     Point result = Point();
     result.x = (a + b) >> 1;
     result.y = (a - b) >> 1;
