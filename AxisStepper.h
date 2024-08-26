@@ -3,17 +3,10 @@
 #include <Arduino.h>
 #include "Models/Directable.h"
 
-#if defined(ARDUINO_GIGA)
-#include "Portenta_H7_TimerInterrupt.h"
-#elif defined(ARDUINO_SAM_DUE)
-#include <DueTimer.h>
-#endif
-
 class AxisStepper : public Directable
 {
 public:
     byte id;
-    typedef void (*VoidCallback)();
     bool calibrated = false;
     uint32_t nextStepAt;
 
@@ -48,9 +41,6 @@ public:
     {
         return this->_isRunning;
     }
-
-    VoidCallback callback;
-    void startTimer(float period);
 
     long position = 0;
     long speed = 0;

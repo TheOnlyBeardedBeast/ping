@@ -116,14 +116,6 @@ bool AxisStepper::needsMoving()
     return this->distanceRun != this->distance;
 };
 
-void AxisStepper::startTimer(float frequency) {
-    // #if defined(ARDUINO_GIGA)
-    //     this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
-    // #elif defined(ARDUINO_SAM_DUE)
-    //     this->timer->attachInterrupt(this->callback).setPeriod(this->delayPeriod).start();
-    // #endif
-};
-
 void AxisStepper::setDirection(StepDirection dir)
 {
     if (this->direction == dir)
