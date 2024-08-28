@@ -135,15 +135,7 @@ void Ping::runMatch()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    // BOUNCE
-    if ((ballLimits.y == ballPosition.y || 0 == ballPosition.y) && ballPosition.x != 0 && ballPosition.x != ballLimits.x)
-    {
-        ball->bounce();
-        this->gameState = GameState::BOUNCE_PROGRESS;
-        return;
-    }
-
-    // POINT OR PADDLE HIT
+        // POINT OR PADDLE HIT
     if (ballLimits.x == ballPosition.x || 0 == ballPosition.x)
     {
 
@@ -168,6 +160,14 @@ void Ping::runMatch()
         Paddle::detachPaddles();
         this->shooter = nextShooter;
         this->gameState = GameState::MATCH_INIT;
+        return;
+    }
+
+    // BOUNCE
+    if ((ballLimits.y == ballPosition.y || 0 == ballPosition.y) && ballPosition.x != 0 && ballPosition.x != ballLimits.x)
+    {
+        ball->bounce();
+        this->gameState = GameState::BOUNCE_PROGRESS;
         return;
     }
 
