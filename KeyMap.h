@@ -1,5 +1,5 @@
 template <typename Key, typename Value>
-class AssociativeArray
+class KeyMap
 {
 private:
     struct Entry
@@ -81,8 +81,8 @@ public:
             }
             current = current->next;
         }
-        // Key not found
-        throw std::out_of_range("Key not found");
+
+        return NULL;
     }
 
     void remove(const Key &key)

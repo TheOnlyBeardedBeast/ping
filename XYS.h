@@ -48,7 +48,7 @@ public:
 
     void init(int stepX, int dirX, int stepY, int dirY);
     void step();
-    void setPosition(long x, long y);
+    void setPosition(long x, long y, int moveSpeed);
     long getX()
     {
         return this->x;

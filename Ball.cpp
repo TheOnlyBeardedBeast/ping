@@ -3,6 +3,11 @@
 
 Ball *Ball::instance;
 
+int mapAngleToSpeed(int angle)
+{
+    return static_cast<int>(abs(cos(angle * PI / 180)) * SPEED) + SPEED;
+}
+
 void Ball::setMotors(XYS *_steppers)
 {
     this->_steppers = _steppers;
@@ -10,7 +15,7 @@ void Ball::setMotors(XYS *_steppers)
 
 void Ball::setposition(int x, int y)
 {
-    this->setposition(x, y, SPEED);
+    this->setposition(x, y, mapAngleToSpeed(this->lastAngle));
 }
 
 void Ball::setCurrentPosition(int x, int y)
@@ -26,7 +31,7 @@ void Ball::setposition(int x, int y, int speed)
     int a = x + y;
     int b = x - y;
 
-    this->_steppers->setPosition(a, b);
+    this->_steppers->setPosition(a, b, speed);
 }
 
 void Ball::stop()

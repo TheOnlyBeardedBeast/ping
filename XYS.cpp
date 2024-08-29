@@ -125,7 +125,7 @@ void XYS::step()
     this->speed = TICKS / this->delayPeriod;
 };
 
-void XYS::setPosition(long x, long y)
+void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
 {
     this->moving = true;
     // this->targetX = x;
@@ -150,7 +150,7 @@ void XYS::setPosition(long x, long y)
     int halfDistance = this->distance >> 1;
 
     float acc2 = (float)(ACCELERATION << 1);
-    float accDistance = (float)((SPEED * SPEED) / acc2);
+    float accDistance = (float)((moveSpeed * moveSpeed) / acc2);
     if (this->speed == 0)
     {
         this->accelDistance = accDistance;
@@ -169,7 +169,7 @@ void XYS::setPosition(long x, long y)
     else
     {
         int speedPow = this->speed * this->speed;
-        this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 4;
+        this->accelDistance = moveSpeed * moveSpeed - speedPow / ACCELERATION << 4;
         this->deccelDistance = accDistance;
 
         if (this->deccelDistance + this->accelDistance >= this->distance)
