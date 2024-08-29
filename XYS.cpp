@@ -10,8 +10,8 @@
 
 extern ClearTarget clearTimes[4];
 
-#define SPEED 2000
-#define ACCELERATION 10 * 5000
+#define SPEED 1750
+#define ACCELERATION 10 * 4000
 #define TICKS 1000000
 
 #if defined(ARDUINO_GIGA)

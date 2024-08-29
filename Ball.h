@@ -3,8 +3,8 @@
 #include "XYS.h"
 #include "GameConfig.h"
 
-#define GAMEPLAY_AREA_Y 2260
-#define GAMEPLAY_AREA_X 2400
+#define GAMEPLAY_AREA_Y 1130
+#define GAMEPLAY_AREA_X 1200
 
 struct Point
 {

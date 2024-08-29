@@ -9,6 +9,7 @@
 
 extern ClearTarget clearTimes[4];
 
+#define SIDE_LIMIT 980
 #define SPEED 1600
 #define ACCELERATION 10 * 5000
 #define TICKS 1000000
@@ -40,7 +41,7 @@ bool AxisStepper::singleStep()
         return false;
     }
 
-    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == 1960)))
+    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == SIDE_LIMIT)))
     {
         return false;
     }

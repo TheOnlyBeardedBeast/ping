@@ -2,9 +2,9 @@
 #include <Arduino.h>
 #include "AxisStepper.h"
 
-#define PADDLE_SENSITIVITY 6
-#define PADDLE_LIMIT 1960
-#define PADDLE_CENTER 980
+#define PADDLE_SENSITIVITY 8
+#define PADDLE_LIMIT 980
+#define PADDLE_CENTER 490
 
 using CallbackFunction = void (*)(int);
 

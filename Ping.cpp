@@ -100,7 +100,7 @@ void Ping::serveMatch()
         Paddle::instances[(int)this->shooter]->unsubScribe();
         delay(1);
 
-        float modifier = this->shooter == Player::Player1 ? (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 6, 30) : (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, 1960, 30, 6);
+        float modifier = this->shooter == Player::Player1 ? (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, PADDLE_LIMIT, 6, 30) : (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, PADDLE_LIMIT, 30, 6);
         float angle = ((modifier * 5.f) + (this->shooter == Player::Player1 ? 180.f : 0.0f));
 
         this->ball->shootDeg(angle);
@@ -135,7 +135,7 @@ void Ping::runMatch()
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-        // POINT OR PADDLE HIT
+    // POINT OR PADDLE HIT
     if (ballLimits.x == ballPosition.x || 0 == ballPosition.x)
     {
 
