@@ -5,7 +5,7 @@ Ball *Ball::instance;
 
 int mapAngleToSpeed(int angle)
 {
-    return static_cast<int>(abs(cos(angle * PI / 180)) * SPEED) + SPEED;
+    return static_cast<int>((1 / abs(sin(angle * PI / 180))) * SPEED);
 }
 
 void Ball::setMotors(XYS *_steppers)
@@ -80,7 +80,7 @@ void Ball::calibrate()
 
     this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
-    this->setCurrentPosition(GAMEPLAY_AREA_X, GAMEPLAY_AREA_Y);
+    this->setCurrentPosition(GAMEPLAY_AREA_X + 5, GAMEPLAY_AREA_Y);
     this->limits.x = GAMEPLAY_AREA_X;
     this->limits.y = GAMEPLAY_AREA_Y; // 1step = 0.025cm // somehow 2280 works better maybe belt tension issue
     delay(200);
