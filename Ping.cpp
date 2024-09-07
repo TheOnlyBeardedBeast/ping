@@ -1,127 +1,196 @@
 #include "Ping.h"
 #include "utils.h"
 
-void Ping::init(Ball *ball)
+#define PLAYER1_BUTTON 47
+#define PLAYER2_BUTTON 46
+
+void Ping::init(Ball *ball, Paddle *paddle1, Paddle *paddle2)
 {
     this->ball = ball;
+    this->paddles[0] = paddle1;
+    this->paddles[1] = paddle2;
 }
 
 void Ping::calibrate()
 {
-    // this->paddles[0]->runCalibration();
-    // this->paddles[1]->runCalibration();
+    Paddle::calibrate();
     this->ball->calibrate();
 
+    this->gameState = GameState::CENTER;
+}
+
+void Ping::center()
+{
+    Paddle::instances[0]->_stepper->setTarget(PADDLE_CENTER);
+    Paddle::instances[1]->_stepper->setTarget(PADDLE_CENTER);
+
+    this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y >> 1);
+
+    this->gameState = GameState::CENTER_PROGRESS;
+}
+
+void Ping::centerProgress()
+{
+    if (Paddle::instances[0]->_stepper->position != PADDLE_CENTER || Paddle::instances[1]->_stepper->position != PADDLE_CENTER)
+    {
+        Paddle::instances[0]->_stepper->step();
+        Paddle::instances[1]->_stepper->step();
+        return;
+    }
+
+    if (this->ball->needsToMove())
+    {
+        return;
+    }
+
+    delay(500);
+    // TODO: put the game into stand by mode so the game can be started by the ball shooting button
     // this->gameState = GameState::STAND_BY;
     this->gameState = GameState::MATCH_INIT;
 }
 
 void Ping::initMatch()
 {
-    if(this->lastWinner == Player::NONE) {
-        this->lastWinner = (Player)random(0,2);
+    if (this->lastWinner == Player::NOONE)
+    {
+        this->lastWinner = (Player)random(0, 2);
+        this->shooter = this->lastWinner;
     }
 
-    // if(this->lastWinner == Player::Player1) {
-        this->ball->setposition(this->ball->limits.x>>1,400);
-    // } else {
-    //     this->ball->setposition(this->ball->limits.x>>1,this->ball->limits.y);
-    // }
+    if (this->shooter == Player::Player1)
+    {
+        this->ball->setposition(this->ball->limits.x, (this->ball->limits.y >> 1) + paddles[this->shooter]->getCenterRelativePosition());
+    }
+    else
+    {
+        this->ball->setposition(0, (this->ball->limits.y >> 1) + paddles[this->shooter]->getCenterRelativePosition());
+    }
 
-    ball->waitRun();
-
-    this->gameState = GameState::MATCH_SERVE;
-    // this->gameState = GameState::MATCH_SERVE;
+    this->gameState = GameState::MATCH_INIT_PROGRESS;
 }
 
-void Ping::endMatch()
+void Ping::initMatchProgress()
 {
-    this->ball->runCenter();
+    if (this->ball->needsToMove())
+    {
+        return;
+    }
 
-    // this->paddles[0]->center();
-    // this->paddles[1]->center();
+    this->gameState = GameState::MATCH_INIT_DONE;
+}
 
-    // while (paddles[0]->needsToMove() || paddles[1]->needsToMove())
-    // {
-    //     paddles[0]->run();
-    //     paddles[1]->run();
-    // }
-    
+void Ping::initMatchDone()
+{
+    ball->setDirection(StepDirection::NONE);
 
-    this->gameState = GameState::MATCH_INIT;
+    paddles[this->shooter]->subscribe(Ball::setDirection, Ball::singleStep);
+
+    Paddle::attachPaddles();
+
+    this->gameState = GameState::MATCH_SERVE;
 }
 
 /// @brief Runs a serving step in the game, must be called in a loop
 void Ping::serveMatch()
 {
-    // if(SERVE_PIN(this->lastWinner))
-    // {
-        this->ball->shootAngle(0.523598776); //0.785398163
-        // TODO: #improvement calculate a vector to serve a ball in an angle if the paddle is moving
-        this->gameState = GameState::MATCH_RUN;
+    size_t inputPin = this->shooter == 0 ? 47 : 46;
+
+    if (!digitalRead(inputPin))
+    {
+        Paddle::instances[(int)this->shooter]->unsubScribe();
+        delay(1);
+
+        float modifier = this->shooter == Player::Player1 ? (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, PADDLE_LIMIT, 6, 30) : (float)map(Paddle::instances[(int)this->shooter]->getPosition(), 0, PADDLE_LIMIT, 30, 6);
+        float angle = ((modifier * 5.f) + (this->shooter == Player::Player1 ? 180.f : 0.0f));
+
+        this->ball->shootDeg(angle);
+        this->gameState = GameState::SERVE_PROGRESS;
         return;
-    // }
+    }
 
-    // Paddle* paddle = this->paddles[this->lastWinner]; 
-    // int paddlePosition = this->paddles[this->lastWinner]->getPosition();
-
-    // int mappedPosition = map(paddlePosition,0,paddle->limitMax,0,ball->limits.x);
-    // this->ball->setposition(this->ball->getPosition().x,mappedPosition);
-    // this->run();
+    return;
 }
 
-void Ping::run()
+void Ping::serveProgress()
 {
-    this->ball->run();
-    // this->paddles[0]->run();
-    // this->paddles[1]->run();
+    Point ballPosition = this->ball->getPosition();
+    Point ballLimits = this->ball->limits;
+
+    if (ballLimits.x == ballPosition.x || 0 == ballPosition.x)
+    {
+        return;
+    }
+
+    this->gameState = GameState::MATCH_RUN;
+    return;
 }
 
 void Ping::runMatch()
 {
-    this->run();
+    if (this->ball->needsToMove())
+    {
+        return;
+    }
+
     Point ballPosition = this->ball->getPosition();
     Point ballLimits = this->ball->limits;
 
-    // if(ball->needsToMove()) {
-    //     // TODO:
-    //     // check paddle
-    //     // if paddle hit then shoot
-    //     return;
-    // }
-        // TODO:
-        // check if game point or wall hit
-        // if vertical wall hit -> bounce
-        // if horizontal wall hit -> game point
-     if(ballLimits.x <= ballPosition.x || 0 >= ballPosition.x)
+    // POINT OR PADDLE HIT
+    if (ballLimits.x == ballPosition.x || 0 == ballPosition.x)
+    {
+
+        Player nextShooter = this->shooter == Player::Player1 ? Player::Player2 : Player::Player1;
+
+        byte shot = Paddle::instances[(int)nextShooter]->canShoot(ball->getCenterRelativePosition());
+
+        if (shot != 0)
+        {
+            if (nextShooter == Player::Player2)
+            {
+                shot = map(shot, 30, 150, 150, 30);
+            }
+
+            float angle = (shot + (nextShooter == Player::Player1 ? 180.f : 0.0f));
+            this->ball->shootDeg(angle);
+            this->shooter = nextShooter;
+            this->gameState = GameState::SERVE_PROGRESS;
+            return;
+        }
+
+        Paddle::detachPaddles();
+        this->shooter = nextShooter;
+        this->gameState = GameState::MATCH_INIT;
+        return;
+    }
+
+    // BOUNCE
+    if ((ballLimits.y == ballPosition.y || 0 == ballPosition.y) && ballPosition.x != 0 && ballPosition.x != ballLimits.x)
     {
         ball->bounce();
-    } 
-     if(ballLimits.y <= ballPosition.y || 0 >= ballPosition.y)
-    {
-        this->gameState = GameState::MATCH_END;
+        this->gameState = GameState::BOUNCE_PROGRESS;
+        return;
     }
-    // if(ballPosition.y <= 0+PADDLE_WIDTH || ballPosition.y > ballLimits.y -PADDLE_WIDTH)
-    // {
-    //     // TODO: separate sides
-    //     // only calculate hit if the next position is going to the paddle
-    //     // checking the vector also prevents multiple calls
-    //     // check the x position as well
-    // }
-    // else if (true) 
-    // {
 
-    // }
-    // else if((ballPosition.x >= ballLimits.x || ballPosition.x <= 0) && ballPosition.y > 0 && ballPosition.y < ballLimits.y)
-    // {
-    //     // TODO: hit the top or bottom wall
-    // }
-    // TODO: wall hit
-    // TODO: match point {
-    // TODO: set winner
-        // this->gameState = GameState::MATCH_END;
-    // }
-    // TODO: paddle hit
+    return;
+}
 
-    this->run();
+void Ping::endMatch()
+{
+    delay(1000);
+    this->ball->center();
+
+    this->gameState = GameState::CENTER_PROGRESS;
+}
+
+void Ping::bounceProgess()
+{
+    Point ballPosition = this->ball->getPosition();
+    Point ballLimits = this->ball->limits;
+
+    if (ballLimits.y == ballPosition.y || 0 == ballPosition.y)
+    {
+        return;
+    }
+
+    this->gameState = GameState::MATCH_RUN;
 }

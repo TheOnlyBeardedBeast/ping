@@ -1,201 +1,94 @@
 #include "Paddle.h"
 #include "utils.h"
+#include "GameConfig.h"
 
 #define CLAMP(value, minValue, maxValue) ((value) < (minValue) ? (minValue) : ((value) > (maxValue) ? (maxValue) : (value)))
 
-#define ENCODER_RESOLUTION 2400
-#define SAMPLING_TIME 100
+#define ENCODER_RESOLUTION 600
+#include "ClearTarget.h"
 
+extern void clearSteps();
+
+// extern ClearTarget clearTimes[6];
+
+Paddle *Paddle::instances[2];
+bool Paddle::calibrated = false;
+
+// int Paddle::count = 0;
 
 Paddle::Paddle()
 {
-    this->direction = CW;
-    this->_pulseCount = 0;
-    this->_lastTime = 0;
-    this->_currentTime = 0;
-    this->_deltaTime = 0;
-    this->smoother = DirectionSmoother(10);
+    // this->_pulseCount = 0;
+    // this->_lastTime = 0;
+    // this->_currentTime = 0;
+    // this->_deltaTime = 0;
+    // this->lastRunA = 0;
+    // this->lastRunB = 0;
 }
 
-void Paddle::initializeEncoder(byte A, byte B)
+void Paddle::initializeEncoder(int A, int B)
 {
-    this->_pinA = A;
-    // this->_registerA = digitalPinToPort(A)->PIO_PDSR;
-    // this->_registerB = digitalPinToPort(B)->PIO_PDSR;
-
-    this->_pinB = B;
-    // this->_bitMaskA = digitalPinToBitMask(A);
-    // this->_bitMaskA = digitalPinToBitMask(B);
-
     pinMode(A, INPUT_PULLUP);
     pinMode(B, INPUT_PULLUP);
+
+    this->_pinA = A;
+    this->_pinB = B;
 }
 
-void Paddle::initializeStepper(AccelStepper* stepper)
+void Paddle::initializeStepper(AxisStepper *stepper)
 {
     this->_stepper = stepper;
-    this->_stepper->setMaxSpeed(SPEED);
-    this->_stepper->setAcceleration(ACCELERATION);
-}
-
-AccelStepper *initializeStepper(byte STEP, byte DIR)
-{
-    pinMode(STEP, OUTPUT);
-    pinMode(DIR, OUTPUT);
-
-    AccelStepper stepper = AccelStepper(1, STEP, DIR);
-
-    stepper.setMaxSpeed(SPEED);
-    stepper.setAcceleration(ACCELERATION);
-
-    return &stepper;
-}
-
-void Paddle::initCalibration()
-{
-    this->_stepper->setSpeed(CALIBRATION_SPEED);
-}
-
-void Paddle::calibratePosition(CalibrationPosition position)
-{
-    this->_stepper->moveTo(this->CALIBRATION_LIMITS[position]);
-    this->_stepper->setAcceleration(ACCELERATION);
-    this->_stepper->setMaxSpeed(CALIBRATION_SPEED);
-
-    while (!this->limitSwitchState[position])
-    {
-        this->_stepper->run();
-    }
-
-    this->_stepper->stop();
-}
-
-void Paddle::runCalibration()
-{
-    this->calibratePosition(CalibrationPosition::MIN);
-    this->_stepper->setCurrentPosition(-SAFEZONE_WIDTH);
-
-
-    this->calibratePosition(CalibrationPosition::MAX);
-    this->max = this->_stepper->currentPosition() - SAFEZONE_WIDTH;
-
-    this->center();
 }
 
 void Paddle::center()
 {
-    this->_stepper->moveTo(this->max>>1);
+    this->_stepper->setTarget(PADDLE_CENTER);
 }
 
 void Paddle::runCenter()
 {
-    this->center();
-
-    while (this->_stepper->distanceToGo()!=0)
+    if (this->_stepper->position < PADDLE_CENTER)
     {
-        this->_stepper->run();
-    }
-
-    this->_stepper->stop();
-}
-
-void Paddle::run()
-{
-
-    if (this->_deltaTime >= SAMPLING_TIME)
-    {
-        this->running = true;
-
-        // Calculation for the new max speed
-        double dTime = (double)this->_deltaTime;
-        double dPulse = (double)this->_pulseCount;
-
-        double newSpeed = (((10 / dTime) * (dTime * dPulse)) / ENCODER_RESOLUTION) * 100;
-        newSpeed = CLAMP(newSpeed, 200, 800);
-
-        if (newSpeed != this->speed)
-        {
-            this->speed = newSpeed;
-            this->_stepper->setMaxSpeed(this->speed);
-        }
-
-        this->_pulseCount = 0;
-        this->_deltaTime = 0;
-    }
-    else if (this->running && millis() - this->_lastTime > SAMPLING_TIME + 10)
-    {
-        this->running = false;
-        this->_stepper->stop();
-        this->speed = 0;
-    }
-
-    this->_stepper->run();
-}
-
-void Paddle::isrA()
-{
-    if (this->readA() == this->readB())
-    {
-        this->direction = CW;
-        smoother.smoothDirection(CW);
-        if (smoother.getCurrentDirection() == CW && this->_stepper->distanceToGo() <= 0)
-        {
-            this->_stepper->moveTo(10000);
-        }
+        this->_stepper->setDirection(StepDirection::FORWARD);
     }
     else
     {
-        this->direction = CCW;
-        smoother.smoothDirection(CCW);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper->distanceToGo() >= 0)
-        {
-            this->_stepper->moveTo(-10000);
-        }
+        this->_stepper->setDirection(StepDirection::BACKWARD);
     }
 
-    this->_pulseCount++;
-    this->_currentTime = millis();
-    if (_currentTime - _lastTime >= SAMPLING_TIME)
+    while (this->_stepper->position != PADDLE_CENTER)
     {
-        this->_deltaTime = _currentTime - _lastTime;
-        this->_lastTime = _currentTime;
-    }
-}
-
-void Paddle::isrB()
-{
-
-    if (this->readB() != readA())
-    {
-        this->direction = CW;
-        smoother.smoothDirection(CW);
-        if (smoother.getCurrentDirection() == CW && this->_stepper->distanceToGo() <= 0)
-        {
-            this->_stepper->moveTo(10000);
-        }
-    }
-    else
-    {
-        this->direction = CCW;
-        smoother.smoothDirection(CCW);
-        if (smoother.getCurrentDirection() == CCW && this->_stepper->distanceToGo() >= 0)
-        {
-            this->_stepper->moveTo(-10000);
-        }
-    }
-
-    this->_pulseCount++;
-    this->_currentTime = millis();
-    if (_currentTime - _lastTime >= SAMPLING_TIME)
-    {
-        this->_deltaTime = _currentTime - _lastTime;
-        this->_lastTime = _currentTime;
+        this->_stepper->singleStep();
+        delayMicroseconds(500);
     }
 }
 
 void Paddle::stop()
 {
     this->_stepper->stop();
+}
+
+void Paddle::setDirection(StepDirection _direction)
+{
+    this->_stepper->setDirection(_direction);
+    if (this->onDirectionChange)
+    {
+        this->onDirectionChange(_direction);
+    }
+}
+
+void Paddle::singleStep()
+{
+    if (this->stepIndex == 0)
+    {
+
+        if (this->_stepper->singleStep() && this->onStepChange)
+        {
+            this->onStepChange();
+        }
+    }
+
+    this->stepIndex = (this->stepIndex + 1) % PADDLE_SENSITIVITY;
 }
 
 int Paddle::readA()
@@ -212,10 +105,212 @@ int Paddle::readB()
 
 long Paddle::getPosition()
 {
-    this->_stepper->currentPosition();
+    return this->_stepper->getPosition();
+}
+
+long Paddle::getCenterRelativePosition()
+{
+    return this->getPosition() - PADDLE_CENTER;
 }
 
 bool Paddle::needsToMove()
 {
-    this->_stepper->distanceToGo() != 0;
+    this->_stepper->isRunning();
+}
+
+void Paddle::clearSingleStep()
+{
+    this->_stepper->singleStep();
+}
+
+void Paddle::isrReadEncoder0()
+{
+    if (!Paddle::instances[0]->readB())
+    {
+        Paddle::instances[0]->setDirection(StepDirection::FORWARD);
+
+        Paddle::instances[0]->singleStep();
+    }
+    else
+    {
+        Paddle::instances[0]->setDirection(StepDirection::BACKWARD);
+
+        Paddle::instances[0]->singleStep();
+    }
+}
+
+void Paddle::isrReadEncoder01()
+{
+
+    if (Paddle::instances[0]->readA())
+    {
+        Paddle::instances[0]->setDirection(StepDirection::FORWARD);
+
+        Paddle::instances[0]->singleStep();
+    }
+    else
+    {
+        Paddle::instances[0]->setDirection(StepDirection::BACKWARD);
+
+        Paddle::instances[0]->singleStep();
+    }
+}
+
+void Paddle::isrReadEncoder10()
+{
+    if (!Paddle::instances[1]->readB())
+    {
+        Paddle::instances[1]->setDirection(StepDirection::FORWARD);
+
+        Paddle::instances[1]->singleStep();
+    }
+    else
+    {
+        Paddle::instances[1]->setDirection(StepDirection::BACKWARD);
+
+        Paddle::instances[1]->singleStep();
+    }
+}
+
+void Paddle::isrReadEncoder11()
+{
+    if (Paddle::instances[1]->readA())
+    {
+        Paddle::instances[1]->setDirection(StepDirection::FORWARD);
+
+        Paddle::instances[1]->singleStep();
+    }
+    else
+    {
+        Paddle::instances[1]->setDirection(StepDirection::BACKWARD);
+
+        Paddle::instances[1]->singleStep();
+    }
+}
+
+void Paddle::calibrate()
+{
+    Paddle *p1 = Paddle::instances[0];
+    Paddle *p2 = Paddle::instances[1];
+
+    p1->setDirection(StepDirection::BACKWARD);
+    p2->setDirection(StepDirection::BACKWARD);
+
+    delayMicroseconds(20);
+    clearSteps();
+
+    while (!p1->_stepper->calibrated || !p2->_stepper->calibrated)
+    {
+        if (!digitalRead(LS3))
+        {
+            p1->_stepper->calibrated = true;
+        }
+
+        if (!digitalRead(LS4))
+        {
+            p2->_stepper->calibrated = true;
+        }
+
+        if (!p1->_stepper->calibrated)
+        {
+            p1->_stepper->singleStep();
+        }
+
+        if (!p2->_stepper->calibrated)
+        {
+            p2->_stepper->singleStep();
+        }
+
+        delayMicroseconds(20);
+        clearSteps();
+
+        delay(4);
+    }
+
+    delay(1000);
+
+    p1->setDirection(StepDirection::FORWARD);
+    p2->setDirection(StepDirection::FORWARD);
+
+    delayMicroseconds(5);
+
+    for (size_t i = 0; i < 10; i++)
+    {
+        p1->_stepper->singleStep();
+        p2->_stepper->singleStep();
+        delay(4);
+        clearSteps();
+        delayMicroseconds(3);
+    }
+
+    p1->_stepper->setCurrentPosition(0);
+    p2->_stepper->setCurrentPosition(0);
+
+    Paddle::calibrated = true;
+}
+
+void Paddle::centerAll()
+{
+    Paddle *p1 = Paddle::instances[0];
+    Paddle *p2 = Paddle::instances[1];
+
+    p1->_stepper->setTarget(PADDLE_CENTER);
+    p2->_stepper->setTarget(PADDLE_CENTER);
+    delay(1);
+}
+
+void Paddle::attachPaddles()
+{
+
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[0]->_pinA),
+        Paddle::isrReadEncoder0, RISING);
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[0]->_pinB),
+        Paddle::isrReadEncoder01, RISING);
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[1]->_pinA),
+        Paddle::isrReadEncoder10, RISING);
+    attachInterrupt(
+        digitalPinToInterrupt(
+            Paddle::instances[1]->_pinB),
+        Paddle::isrReadEncoder11, RISING);
+}
+
+void Paddle::detachPaddles()
+{
+    detachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinA));
+    detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinA));
+    detachInterrupt(digitalPinToInterrupt(Paddle::instances[0]->_pinB));
+    detachInterrupt(digitalPinToInterrupt(Paddle::instances[1]->_pinB));
+}
+
+byte Paddle::canShoot(long ballPos)
+{
+    long paddlePos = this->getCenterRelativePosition();
+
+    long paddleLeftEdge = paddlePos - PADDLE_WIDTH_HALF;
+    long paddleRightEdge = paddlePos + PADDLE_WIDTH_HALF;
+    long ballLeftEdge = ballPos - BALL_WIDTH_HALF;
+    long ballRightEdge = ballPos + BALL_WIDTH_HALF;
+
+    long hitzone = PADDLE_WIDTH_HALF + BALL_WIDTH_HALF;
+
+    // Check if the ball is within the paddle's bounds
+    if (ballRightEdge >= paddleLeftEdge && ballLeftEdge <= paddleRightEdge)
+    {
+        // Calculate the difference in positions
+        double relativePosition = (ballPos - paddlePos);
+
+        // Map the relative position to an angle between 30 and 150 degrees
+        return round(map(relativePosition, -hitzone, hitzone, 30, 150));
+    }
+    else
+    {
+        // No collision
+        return 0;
+    }
 }

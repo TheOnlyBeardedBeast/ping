@@ -1,44 +1,47 @@
 #include "XYS.h"
+#if defined(ARDUINO_GIGA)
 #include "GigaDigitalWriteFast.h"
+#elif defined(ARDUINO_SAM_DUE)
+#include "DueWriteFast.h"
+#endif
+#include "helpers.h"
 
-#define SPEED 12000
-#define ACCELERATION 4*12000
+#include "ClearTarget.h"
+
+extern ClearTarget clearTimes[4];
+
+#define SPEED 1750
+#define ACCELERATION 10 * 4000
 #define TICKS 1000000
-
-void XYS::setCallback(VoidCallback callback)
-{
-    this->callback = callback;
-}
 
 #if defined(ARDUINO_GIGA)
 void XYS::setTimer(Portenta_H7_Timer *timer)
 {
     this->timer = timer;
 };
-#endif
-#if defined(ARDUINO_SAM_DUE)
+#elif defined(ARDUINO_SAM_DUE)
 void XYS::setTimer(DueTimer *timer)
 {
     this->timer = timer;
 };
 #endif
 
+XYS *XYS::instance;
 
 void XYS::init(int stepX, int dirX, int stepY, int dirY)
 {
-    
-    
-    GPIO_TypeDef* stepXPort = getPinPort(stepX);
-    GPIO_TypeDef* stepYPort = getPinPort(stepY);
+    GPIO_TypeDef *stepXPort = getPinPort(stepX);
+    GPIO_TypeDef *stepYPort = getPinPort(stepY);
 
-    if(stepXPort != stepYPort)
-    {
-        throw "Pins are not on a the same port.";
-    }
+    // if(stepXPort != stepYPort)
+    // {
+    //     throw "Pins are not on a the same port.";
+    // }
 
     this->stepperX.step_pin = stepX;
     this->stepperX.dir_pin = dirX;
     this->stepperX.step_mask = getPinMask(stepX);
+    // PB_7
     // PB_7
     // GPIOB->ODR // output set
     // GPIOB->IDR // input read
@@ -48,6 +51,8 @@ void XYS::init(int stepX, int dirX, int stepY, int dirY)
     this->stepperY.step_mask = getPinMask(stepY);
 
     this->port = stepXPort;
+
+    XYS::instance = this;
 };
 
 void XYS::step()
@@ -59,54 +64,42 @@ void XYS::step()
     //     return;
     // }
 
-    if (!this->isRunning())
+    if (!this->needsMoving())
     {
-        #if defined(ARDUINO_GIGA)
-            this->timer->stopTimer();
-            this->timer->detachInterrupt();
-        #endif
-        #if defined(ARDUINO_SAM_DUE)
-            this->timer->stop();
-            this->timer->detachInterrupt();
-        #endif
+#if defined(ARDUINO_GIGA)
+        this->timer->stopTimer();
+#elif defined(ARDUINO_SAM_DUE)
+        this->timer->stop();
+#endif
+
+        // this->timer->detachInterrupt();
 
         this->resetBresenham();
         this->resetRamping();
-        
+        this->moving = false;
+
         return;
     }
 
-    uint16_t stepMask;
+    uint16_t stepMask = 0;
 
-    int e2 = 2 * err;
+    int e2 = this->err << 1;
     if (e2 > -dy)
     {
         err -= dy;
         this->x += sx;
-        digitalWriteFast(this->stepperX.dir_pin, this->sx > 0);
         stepMask |= stepperX.step_mask;
-
-        // digitalWrite(this->stepperX.dir_pin, this->sx > 0);
-        // digitalWrite(this->stepperX.step_pin, HIGH);
-        // delayMicroseconds(1);
-        // digitalWrite(this->stepperX.step_pin, LOW);
     }
     if (e2 < dx)
     {
         err += dx;
         this->y += sy;
-        digitalWriteFast(this->stepperY.dir_pin, this->sy > 0);
         stepMask |= stepperY.step_mask;
-
-        // digitalWrite(this->stepperY.dir_pin, this->sy > 0);
-        // digitalWrite(this->stepperY.step_pin, HIGH);
-        // delayMicroseconds(1);
-        // digitalWrite(this->stepperY.step_pin, LOW);
     }
 
-    digitalToggleMask(stepMask,this->port);
-    delayMicroseconds(1);
-    digitalToggleMask(stepMask,this->port);
+    digitalToggleMask(stepMask, this->port);
+    delayMicroseconds(3);
+    digitalToggleMask(stepMask, this->port);
 
     this->distanceRun++;
 
@@ -121,23 +114,20 @@ void XYS::step()
     {
         // this->delayPeriod = this->delayPeriod * (1+this->multiplier*this->delayPeriod*this->delayPeriod);
         this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
-    } else {
-        // noo need for any delay recalculation
-        return;
     }
 
-    #if defined(ARDUINO_GIGA)
-    this->timer->setInterval(this->delayPeriod, this->callback);
+#if defined(ARDUINO_GIGA)
+    this->timer->setInterval(this->delayPeriod - 3, XYS::ballIsr);
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->setPeriod(this->delayPeriod - 3).start();
+#endif
+
     this->speed = TICKS / this->delayPeriod;
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    this->timer->stop();
-    this->timer->setPeriod(this->delayPeriod).start();
-    #endif
 };
 
-void XYS::setPosition(long x, long y)
+void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
 {
+    this->moving = true;
     // this->targetX = x;
     // this->targetY = y;
 
@@ -146,16 +136,21 @@ void XYS::setPosition(long x, long y)
     this->dy = abs(y - this->y);
     this->sx = this->x < x ? 1 : -1;
     this->sy = this->y < y ? 1 : -1;
-    this->err = dx - dy;
+    this->err = this->dx - this->dy;
     this->axis = this->dx < this->dy ? MainAxis::Y : MainAxis::X;
 
+    // DirectionSetup
+    // It is enough to setup the direction just here, because it wont change in the next steps
+    digitalWriteFast(this->stepperX.dir_pin, this->sx > 0 ? HIGH : LOW);
+    digitalWriteFast(this->stepperY.dir_pin, this->sy > 0 ? HIGH : LOW);
+
     // Leib ramp
-    this->distance = abs(this->dx > this->dy ? this->dx : this->dy);
+    this->distance = abs(this->dx >= this->dy ? this->dx : this->dy);
     this->distanceRun = 0;
     int halfDistance = this->distance >> 1;
 
     float acc2 = (float)(ACCELERATION << 1);
-    float accDistance = (float)((SPEED * SPEED) / acc2);
+    float accDistance = (float)((moveSpeed * moveSpeed) / acc2);
     if (this->speed == 0)
     {
         this->accelDistance = accDistance;
@@ -174,7 +169,7 @@ void XYS::setPosition(long x, long y)
     else
     {
         int speedPow = this->speed * this->speed;
-        this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 2;
+        this->accelDistance = moveSpeed * moveSpeed - speedPow / ACCELERATION << 4;
         this->deccelDistance = accDistance;
 
         if (this->deccelDistance + this->accelDistance >= this->distance)
@@ -199,30 +194,126 @@ void XYS::setPosition(long x, long y)
     this->startTimer(this->delayPeriod);
 }
 
-void XYS::stop(){
+void XYS::stop()
+{
     int speedPow = this->speed * this->speed;
 
-    this->accelDistance = SPEED * SPEED - speedPow / (ACCELERATION<<1);
+    this->accelDistance = SPEED * SPEED - speedPow / (ACCELERATION << 1);
     this->deccelDistance = this->accelDistance;
 
-    if(this->axis == MainAxis::X)
-    {
-        this->distance = this->distanceRun + this->deccelDistance;
-    }
+    this->distance = this->distanceRun + this->deccelDistance;
 };
 
-bool XYS::isRunning()
+void XYS::stopNow()
+{
+#if defined(ARDUINO_GIGA)
+    this->timer->stopTimer();
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->stop();
+#endif
+
+    this->timer->detachInterrupt();
+
+    this->resetBresenham();
+    this->resetRamping();
+    this->moving = false;
+
+    return;
+}
+
+bool XYS::needsMoving()
 {
     return this->distanceRun != this->distance;
 };
 
 void XYS::startTimer(float frequency)
 {
-    #if defined(ARDUINO_GIGA)
-    this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    this->timer->attachInterrupt(this->callback).setPeriod(this->delayPeriod).start();
-    #endif
-    
+#if defined(ARDUINO_GIGA)
+    this->timer->attachInterruptInterval(this->delayPeriod, XYS::ballIsr);
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->attachInterrupt(XYS::ballIsr).setPeriod(this->delayPeriod).start();
+#endif
+}
+void XYS::setDirection(StepDirection _direction)
+{
+    if (this->direction == _direction)
+    {
+        return;
+    }
+
+    this->direction = _direction;
+    digitalWriteFast(this->stepperX.dir_pin, _direction > 0 ? HIGH : LOW);
+    digitalWriteFast(this->stepperY.dir_pin, _direction < 0 ? HIGH : LOW);
+
+    clearTimes[5].enabled = true;
+    clearTimes[5].time = micros();
 };
+
+void XYS::singleStep()
+{
+    if (clearTimes[5].enabled || clearTimes[4].enabled)
+    {
+        return;
+    }
+
+    uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
+
+    digitalWriteFast(stepperX.step_pin, HIGH);
+    digitalWriteFast(stepperY.step_pin, HIGH);
+    clearTimes[4].enabled = true;
+    clearTimes[4].time = micros();
+}
+
+void XYS::clearStep()
+{
+    // uint16_t stepMask = stepperX.step_mask | stepperY.step_mask;
+    digitalWriteFast(stepperX.step_pin, LOW);
+    digitalWriteFast(stepperY.step_pin, LOW);
+}
+
+void XYS::ballIsr()
+{
+    XYS::instance->step();
+}
+
+void XYS::moveWhile(PinStatus motor1, PinStatus motor2, unsigned short speed, BoolCallback condition)
+{
+    PinStatus xDir = motor1;
+    PinStatus yDir = motor2;
+
+    digitalWriteFast(stepperX.dir_pin, motor1);
+    digitalWriteFast(stepperY.dir_pin, motor2);
+
+    delayMicroseconds(5);
+
+    int timeDelay = TICKS / speed;
+
+    while (condition())
+    {
+        digitalWriteFast(stepperX.step_pin, HIGH);
+        digitalWriteFast(stepperY.step_pin, HIGH);
+
+        delayMicroseconds(3);
+
+        digitalWriteFast(stepperX.step_pin, LOW);
+        digitalWriteFast(stepperY.step_pin, LOW);
+        if (xDir && yDir)
+        {
+            this->x++;
+        }
+        else if (!xDir && !yDir)
+        {
+            this->x--;
+        }
+        if (yDir && !yDir)
+        {
+            this->y++;
+        }
+        else if (!yDir && yDir)
+        {
+            this->y--;
+        }
+
+        delayMicroseconds(timeDelay);
+    }
+}

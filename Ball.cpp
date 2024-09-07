@@ -1,102 +1,49 @@
 #include "Ball.h"
 #include "utils.h"
-#include "AccelStepper.h"
 
-void Ball::setMotors(AccelStepper *_stepperA, AccelStepper *_stepperB)
+Ball *Ball::instance;
+
+int mapAngleToSpeed(int angle)
 {
-     this->_stepperA = _stepperA;
-    this->_stepperA->setPinsInverted(true);
-    this->_stepperB = _stepperB;
-    this->_stepperB->setPinsInverted(true);
+    return static_cast<int>((1 / abs(sin(angle * PI / 180))) * SPEED);
 }
 
-void Ball::run()
+void Ball::setMotors(XYS *_steppers)
 {
-    // int dx = abs(x1 - x0);
-    // int dy = abs(y1 - y0);
-    // int sx = x0 < x1 ? 1 : -1;
-    // int sy = y0 < y1 ? 1 : -1;
-    // int err = dx - dy;
-
-        // Todo here
-
-        if (_stepperA->distanceToGo() == 0 && _stepperA->distanceToGo() == 0) {
-            this->_stepperA->run();
-            this->_stepperB->run();
-        }
-
-        int e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            // x0 += sx;
-            this->_stepperA->run();
-        }
-        if (e2 < dx) {
-            err += dx;
-            // y0 += sy;
-            this->_stepperB->run();
-        }
-    
+    this->_steppers = _steppers;
 }
 
 void Ball::setposition(int x, int y)
 {
-    this->setposition(x,y,SPEED);
+    this->setposition(x, y, mapAngleToSpeed(this->lastAngle));
+}
+
+void Ball::setCurrentPosition(int x, int y)
+{
+    int a = x + y;
+    int b = x - y;
+
+    this->_steppers->setCurrentPosition(a, b);
 }
 
 void Ball::setposition(int x, int y, int speed)
 {
-    // Calculating absolute A and B motor position from absolute X and Y coordinates
-    // Formula used for corexy and h-bot positioning
     int a = x + y;
     int b = x - y;
 
-    int a0 = this->_stepperA->currentPosition();
-    int b0 = this->_stepperB->currentPosition();
-
-    this->dx = abs(a - a0);
-    this->dy = abs(b - b0);
-    this->sx = a0 < a ? 1 : -1;
-    this->sy = b0 < b ? 1 : -1;
-    this->err = dx - dy;
-
-    // Calculating the angle in radians fo the next relative movement
-    double rads = atan(((double)this->dy) / ((double)this->dx));
-    
-    Point currentPosition = this->getPosition();
-    // this->lastAngle = atan(double(currentPosition.x - x) / double(currentPosition.y - y));
-    // Separating the movement into its vectors
-    // amodifier^2 + bmodifier^2 = 1^2
-    // amodifier^2 + bmodifier^2 = 1
-    // (amodifier*speed)^2 + (bmodifier*speed)^2 = speed^2
-    double amodifier = cos(rads);
-    double bmodifier = sin(rads);
-
-    this->_stepperA->moveTo(a);
-    this->_stepperA->setMaxSpeed(amodifier * speed);
-    this->_stepperA->setAcceleration(amodifier * ACCELERATION);
-
-    this->_stepperB->moveTo(b);
-    this->_stepperB->setMaxSpeed(bmodifier * speed);
-    this->_stepperB->setAcceleration(bmodifier * ACCELERATION);
-
-
-    
+    this->_steppers->setPosition(a, b, speed);
 }
 
 void Ball::stop()
 {
-    this->_stepperA->stop();
-    this->_stepperB->stop();
+    this->_steppers->stop();
 }
 
 Point Ball::getPosition()
 {
-    // Getting A and B stepper position
-    long a = this->_stepperA->currentPosition();
-    long b = this->_stepperB->currentPosition();
+    long a = this->_steppers->getX();
+    long b = this->_steppers->getY();
 
-    // Creating the result struct and converting motor positions to X and Y coordinated 
     Point result = Point();
     result.x = (a + b) >> 1;
     result.y = (a - b) >> 1;
@@ -104,138 +51,124 @@ Point Ball::getPosition()
     return result;
 }
 
+long Ball::getCenterRelativePosition()
+{
+    return this->getPosition().y - (this->limits.y >> 1);
+}
+
 void Ball::postCalibrationStop()
 {
     this->stop();
 
     this->waitRun();
-    
 }
 
 void Ball::waitRun()
 {
     while (this->needsToMove())
     {
-        this->run();
+        delay(1);
     }
 }
 
 void Ball::calibrate()
 {
-    // Initialize visited limit switch array
     this->initCalibration();
-    
-    // Looking for the left edge
-    this->setposition(-CALIBRATION_LENGTH,0,CALIBRATION_SPEED);
-    while (digitalRead(22))
-    {
-        this->run();
-    }
 
-    this->stop();
-    //this->postCalibrationStop();
+    BoolCallback leftLimitHit = []()
+    { return digitalRead(LS1) == HIGH ? true : false; };
 
-
-    // Looking for the top edge
-    this->setposition(this->getPosition().x,-CALIBRATION_LENGTH,CALIBRATION_SPEED);
-    while (digitalRead(23))
-    {
-        this->run();
-    }
-
-    this->stop();
-    //this->postCalibrationStop();
-
-    // If we have the left and the bottom edge we can set our origin point
-    this->_stepperA->setCurrentPosition(-SAFEZONE_WIDTH);
-    this->_stepperB->setCurrentPosition(-SAFEZONE_WIDTH);
-
-    // Looking for the bottom edge
-    this->setposition(0,CALIBRATION_LENGTH, CALIBRATION_SPEED);
-    while (digitalRead(24))
-    {
-        this->run();
-    }
-
-    this->stop();
-    //this->postCalibrationStop();
-
-    Point midCalibrationPosition = this->getPosition();
-    this->limits.y = midCalibrationPosition.y - SAFEZONE_WIDTH;
-
-    // this->setposition(0,this->limits.y>>1,CALIBRATION_SPEED);
-    this->setposition(midCalibrationPosition.x,this->limits.y>>1,CALIBRATION_SPEED);
-
-    waitRun();
-
-    // Looking for the right edge
-    this->setposition(CALIBRATION_LENGTH,this->getPosition().y,CALIBRATION_SPEED);
-    while (digitalRead(25))
-    {
-        this->run();
-    }
-
-    this->stop();
-    //this->postCalibrationStop();
-
-    // Setting the max limit for the axes
-    Point position = this->getPosition();
-    this->limits.x = position.x - SAFEZONE_WIDTH;
-    // this->limits.y = position.y - SAFEZONE_WIDTH;
-    
-
-    // Center the ball
-    this->runCenter();
+    this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
+    delay(200);
+    this->setCurrentPosition(GAMEPLAY_AREA_X + 5, GAMEPLAY_AREA_Y);
+    this->limits.x = GAMEPLAY_AREA_X;
+    this->limits.y = GAMEPLAY_AREA_Y; // 1step = 0.025cm // somehow 2280 works better maybe belt tension issue
+    delay(200);
+    return;
 }
 
-void Ball::initCalibration() 
+void Ball::initCalibration()
 {
-    for (byte i = 0; i < 4; i++)
-    {
-        this->calibrationState[i] = false;
-    }
+    this->_steppers->setCurrentPosition(0, 0);
 }
 
 void Ball::runCenter()
 {
     this->center();
-
-    this->waitRun();
-    
-    this->stop();
-
     this->waitRun();
 }
 
 void Ball::center()
 {
-    this->setposition(this->limits.x >> 1, this->limits.y>>1);
+    this->setposition(this->limits.x >> 1, this->limits.y >> 1);
 }
-
 
 bool Ball::needsToMove()
 {
-    return this->_stepperA->distanceToGo() != 0 && this->_stepperB->distanceToGo() != 0;
+    return this->_steppers->isMoving();
 }
 
 void Ball::bounce()
 {
-    // float x = sin(this->lastAngle);
-    // float y = cos(this->lastAngle);
-
-    shootAngle(this->lastAngle < 1 ? PI-0.523598776 : 0.523598776);
+    if (this->lastAngle < 180)
+    {
+        this->shootDeg(180 - this->lastAngle);
+    }
+    else
+    {
+        this->shootDeg(540 - this->lastAngle);
+    }
 }
 
-void Ball::shootAngle(double rads)
+void Ball::shootDeg(uint16_t degrees)
 {
-    this->lastAngle = rads;
-    Point position = this->getPosition();
+    this->lastAngle = degrees;
+    this->shootAngle((float)degrees * (float)PI / 180.f);
+}
 
-    double tanrads = tan(rads);
-    bool SHOOT_LEFT = rads > PI*0.5 && rads < PI*1.5;
+void Ball::shootAngle(float angleRadians)
+{
+    Point ballPos = this->getPosition();
 
-    double adjacent = SHOOT_LEFT ? -(this->limits.x-position.x) : position.x;
-    double opposite = adjacent * tanrads;
-    
-    this->setposition(SHOOT_LEFT ? this->limits.x : 0,position.y + opposite);
+    if ((ballPos.y == this->limits.y &&
+         (this->lastAngle < 90 || this->lastAngle > 270)) ||
+        (ballPos.y == 0 &&
+         (this->lastAngle > 90 && this->lastAngle < 270)))
+    {
+        return this->shootDeg(this->inverseAngle(this->lastAngle));
+    }
+
+    double dy = cos(angleRadians);
+    double dx = sin(angleRadians);
+
+    bool horizontalModifier = dy >= 0;
+    bool verticalModifier = dx >= 0;
+
+    double a = horizontalModifier ? this->limits.y - ballPos.y : ballPos.y;
+    double o = verticalModifier ? this->limits.x - ballPos.x : ballPos.x;
+
+    double ty = a / dy;
+    double tx = o / dx;
+
+    double t = min(abs(ty), abs(tx));
+
+    int newX = constrain(ballPos.x + round(dx * t), 0, this->limits.x);
+    int newY = constrain(ballPos.y + round(dy * t), 0, this->limits.y);
+
+    this->setposition(newX, newY);
+}
+
+uint16_t Ball::inverseAngle(int16_t angle)
+{
+    if (angle < 180)
+    {
+        return 180 - angle;
+    }
+
+    return 540 - angle;
+}
+
+void Ball::stopNow()
+{
+    this->_steppers->stopNow();
 }

@@ -48,6 +48,7 @@ static inline void digitalWriteFast(pin_size_t pin, PinStatus val) {
   GPIO_TypeDef  * const port = port_table[pin_name >> 4];
   if (val) port->BSRR = mask;
   else port->BSRR = (uint32_t)(mask << 16);
+  // PB_7
 }
 
 // This version you takes in a pin name (PinName) like LED_RED

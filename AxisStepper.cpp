@@ -1,174 +1,148 @@
 #include "AxisStepper.h"
+#if defined(ARDUINO_GIGA)
 #include "GigaDigitalWriteFast.h"
+#elif defined(ARDUINO_SAM_DUE)
+#include "DueWriteFast.h"
+#endif
 
-#define SPEED 12000
-#define ACCELERATION 4*12000
+#include "ClearTarget.h"
+
+extern ClearTarget clearTimes[4];
+
+#define SIDE_LIMIT 980
+#define SPEED 1600
+#define ACCELERATION 10 * 5000
 #define TICKS 1000000
 
-void AxisStepper::setCallback(VoidCallback callback)
-{
-    this->callback = callback;
-}
-
-#if defined(ARDUINO_GIGA)
-void AxisStepper::setTimer(Portenta_H7_Timer *timer)
-{
-    this->timer = timer;
-};
-#endif
-#if defined(ARDUINO_SAM_DUE)
-void AxisStepper::setTimer(DueTimer *timer)
-{
-    this->timer = timer;
-};
-#endif
-
+// #if defined(ARDUINO_GIGA)
+// void AxisStepper::setTimer(Portenta_H7_Timer *timer)
+// {
+//     this->timer = timer;
+// };
+// #elif defined(ARDUINO_SAM_DUE)
+// void AxisStepper::setTimer(DueTimer *timer)
+// {
+//     this->timer = timer;
+// };
+// #endif
 
 void AxisStepper::init(int step, int dir)
 {
+    pinMode(step, OUTPUT);
     this->stepper.step_pin = step;
+    pinMode(dir, OUTPUT);
     this->stepper.dir_pin = dir;
-    // PB_7
-    // GPIOB->ODR // output set
-    // GPIOB->IDR // input read
 };
+
+bool AxisStepper::singleStep()
+{
+    if (clearTimes[this->id].enabled || clearTimes[this->id + 2].enabled || this->direction == StepDirection::NONE)
+    {
+        return false;
+    }
+
+    if (this->calibrated && ((this->direction == StepDirection::BACKWARD && this->position == 0) || (this->direction == StepDirection::FORWARD && this->position == SIDE_LIMIT)))
+    {
+        return false;
+    }
+
+    this->position += this->direction;
+    digitalWriteFast(this->stepper.step_pin, HIGH);
+    clearTimes[this->id].enabled = true;
+    clearTimes[this->id].time = micros();
+
+    return true;
+}
 
 void AxisStepper::step()
 {
-    if (!this->isRunning())
+    if (!this->needsMoving())
     {
-        #if defined(ARDUINO_GIGA)
-            this->timer->stopTimer();
-            this->timer->detachInterrupt();
-        #endif
-        #if defined(ARDUINO_SAM_DUE)
-            this->timer->stop();
-            this->timer->detachInterrupt();
-        #endif
-
         this->resetRamping();
-        
+        this->_isRunning = false;
+
         return;
     }
 
-    digitalWriteFast(this->stepper.dir_pin, this->direction > 0);
-    digitalWriteFast(this->stepper.step_pin, HIGH);
-    delayMicroseconds(1);
-    digitalWriteFast(this->stepper.step_pin, LOW);
-    
-    this->position++;
+    if (micros() < this->nextStepAt || clearTimes[this->id + 2].enabled)
+    {
+        return;
+    }
+
+    this->singleStep();
     this->distanceRun++;
 
-    float Q = this->multiplier * this->delayPeriod * this->delayPeriod;
-
-    if (this->distanceRun < this->accelDistance)
-    {
-        this->delayPeriod = this->delayPeriod * (1 - Q + Q * Q);
-    }
-    else if (this->distanceRun >= this->distance - this->deccelDistance)
-    {
-        this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
-    } else 
-    {
-        return;
-    }
-
-    #if defined(ARDUINO_GIGA)
-    this->timer->setInterval(this->delayPeriod, this->callback);
-    this->speed = TICKS / this->delayPeriod;
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    this->timer->stop();
-    this->timer->setPeriod(this->delayPeriod).start();
-    #endif
+    this->nextStepAt = micros() + 800;
 };
 
-void AxisStepper::setPosition(long newDistance)
+void AxisStepper::setTarget(long newPosition)
 {
-    // Leib ramp
-    this->distance = this->distance - newDistance;
+    this->_isRunning = true;
+
+    long diff = this->position - newPosition;
     this->distanceRun = 0;
-    int halfDistance = this->distance >> 1;
 
-    float acc2 = (float)(ACCELERATION << 1);
-    float accDistance = (float)((SPEED * SPEED) / acc2);
-    if (this->speed == 0)
+    if (diff < 0)
     {
-        this->accelDistance = accDistance;
-        // this->deccelDistance = accDistance;
-
-        if (this->accelDistance >= halfDistance)
-        {
-            this->accelDistance = halfDistance;
-            this->deccelDistance = halfDistance;
-        }
-        else
-        {
-            this->deccelDistance = this->accelDistance;
-        }
+        this->setDirection(StepDirection::FORWARD);
     }
     else
     {
-        int speedPow = this->speed * this->speed;
-        this->accelDistance = SPEED * SPEED - speedPow / ACCELERATION << 2;
-        this->deccelDistance = accDistance;
-
-        if (this->deccelDistance + this->accelDistance >= this->distance)
-        {
-            if (this->accelDistance < halfDistance)
-            {
-                this->accelDistance = this->accelDistance;
-                this->deccelDistance = this->distance - this->accelDistance;
-            }
-            else
-            {
-                this->accelDistance = halfDistance;
-                this->deccelDistance = halfDistance;
-            }
-        }
+        this->setDirection(StepDirection::BACKWARD);
     }
 
-    this->multiplier = (float)(ACCELERATION) / (float)((float)TICKS * (float)TICKS);
-    this->speed = sqrtf(acc2);
-    // original TICKS/sqrtf(acc2)
-    this->delayPeriod = TICKS / this->speed;
-    this->startTimer(this->delayPeriod);
+    this->distance = abs(diff);
+    this->nextStepAt = micros();
 }
 
-void AxisStepper::stop(){
-    int speedPow = this->speed * this->speed;
-
-    this->accelDistance = SPEED * SPEED - speedPow / (ACCELERATION<<1);
-    this->deccelDistance = this->accelDistance;
-
-    this->distance = this->distanceRun + this->deccelDistance;
-    
+void AxisStepper::stop()
+{
+    this->distance = this->distanceRun;
 }
-void AxisStepper::forceStop(){
-    #if defined(ARDUINO_GIGA)
-            this->timer->stopTimer();
-            this->timer->detachInterrupt();
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-        this->timer->stop();
-        this->timer->detachInterrupt();
-    #endif
+void AxisStepper::forceStop()
+{
+    this->distanceRun = 0;
+}
 
-    this->resetRamping();
+void AxisStepper::setSpeed(long speed)
+{
+    if (!this->isRunning())
+    {
+        return;
+    }
 };
 
-bool AxisStepper::isRunning()
+bool AxisStepper::needsMoving()
 {
     return this->distanceRun != this->distance;
 };
 
-void AxisStepper::startTimer(float frequency)
+void AxisStepper::setDirection(StepDirection dir)
 {
-    #if defined(ARDUINO_GIGA)
-    this->timer->attachInterruptInterval(this->delayPeriod, this->callback);
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    this->timer->attachInterrupt(this->callback).setPeriod(this->delayPeriod).start();
-    #endif
-    
-};
+    if (this->direction == dir)
+    {
+        return;
+    }
+
+    this->direction = dir;
+    if (this->id == 0)
+    {
+        digitalWrite(this->stepper.dir_pin, dir > 0 ? HIGH : LOW);
+    }
+    else
+    {
+        digitalWrite(this->stepper.dir_pin, dir > 0 ? LOW : HIGH);
+    }
+
+    clearTimes[this->id + 2].enabled = true;
+    clearTimes[this->id + 2].time = micros();
+}
+
+void AxisStepper::clearStep()
+{
+    digitalWriteFast(this->stepper.step_pin, LOW);
+}
+
+void AxisStepper::clearDirection()
+{
+}

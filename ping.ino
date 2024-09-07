@@ -1,89 +1,159 @@
-// #include "Paddle.h"
-#include "AccelStepper.h"
-// #include "Ball.h"
 #include "utils.h"
-#include "DueTimer.h"
 #include "Ping.h"
+#include <Arduino.h>
+#include "BallSetup.h"
+#include "Cleaner.h"
+#include "tc_lib.h"
 
-// Paddle paddleL = Paddle();
-// AccelStepper steppe;
-byte last = 1;
-AccelStepper stepperX;
-AccelStepper stepperY;
-Ball ball;
 Ping ping;
+Ball ball;
+Paddle p1;
+Paddle p2;
+
+AxisStepper p1Stepper;
+AxisStepper p2Stepper;
+
+GameState prevState = GameState::STAND_BY;
+
+// DueTimer clearTimer = Timer8;
+
+bool TESTED = false;
+// action_tc1_declaration();
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("Arduino DUE - PING");
+  // Serial.begin(115200);
+  // // pinMode(LED_BUILTIN,OUTPUT);
+
+  // while (!Serial)
+  // {
+  // };
+
+  // Serial.println("available");
+
+  // #if defined(ARDUINO_GIGA)
+  //   pinMode(LEDB,OUTPUT);
+  // #elif defined(ARDUINO_SAM_DUE)
+  //     pinMode(LED_BUILTIN,OUTPUT);
+  // #endif
+  // // pinMode(LEDR,OUTPUT);
+  setupBall();
 
   randomSeed(analogRead(0));
 
-  // paddleL.initializeEncoder(52, 53);
-  // paddleL.initializeStepper(2, 3);
+  p1.initializeEncoder(48, 49);
+  p1Stepper.init(42, 43);
+  p1.initializeStepper(&p1Stepper);
+  p1Stepper.id = 0;
+  p1.id = 0;
+  pinMode(46, INPUT_PULLUP);
 
-  // attachInterrupt(
-  //     digitalPinToInterrupt(52), []()
-  //     { paddleL.isrA(); },
-  //     CHANGE);
-  // attachInterrupt(
-  //     digitalPinToInterrupt(53), []()
-  //     { paddleL.isrB(); },
-  //     CHANGE);
+  p2.initializeEncoder(18, 19);
+  p2Stepper.init(20, 21);
+  p2.initializeStepper(&p2Stepper);
+  p2Stepper.id = 1;
+  p2.id = 1;
+  pinMode(47, INPUT_PULLUP);
 
-  // ball setup
+  Paddle::instances[0] = &p1;
+  Paddle::instances[1] = &p2;
+  // Paddle::attachPaddles();
 
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
+  // clearTimer.attachInterrupt(clearSteps);
+  // clearTimer.setPeriod(5);
+  // clearTimer.start();
 
-  stepperX = AccelStepper(1, 6, 7);
-  // stepperX.setCurrentPosition(0);
-  // stepperX.setMaxSpeed(SPEED);
-  // stepperX.setAcceleration(ACCELERATION);
+  delay(1000);
 
-  stepperY = AccelStepper(1, 8, 9);
-  // stepperX.setCurrentPosition(0);
-  // stepperY.setMaxSpeed(SPEED);
-  // stepperY.setAcceleration(ACCELERATION);
+  // delay(5000);
 
-  ball.setMotors(&stepperX, &stepperY);
+  // #if defined(ARDUINO_GIGA)
+  //   digitalWrite(LEDB,LOW);
+  // #elif defined(ARDUINO_SAM_DUE)
+  //   digitalWrite(LED_BUILTIN,LOW);
+  // #endif
 
-  pinMode(22, INPUT_PULLUP);
-  pinMode(23, INPUT_PULLUP);
-  pinMode(24, INPUT_PULLUP);
-  pinMode(25, INPUT_PULLUP);
+  ping.init(&ball, &p1, &p2);
 
-  ping.init(&ball);
+  // Serial.println("Run");
+  // for(int i = 0; i<50;i++)
+  // {
+  //   digitalWriteFast(42,HIGH);
+  //   delayMicroseconds(3);
+  //   digitalWriteFast(42,LOW);
+  //   delay(20);
+  // }
 
-  // attachInterrupt(
-  //     digitalPinToInterrupt(22), []()
-  //     { ball.calibrationState[0] = true; },
-  //     LOW);
+  // test
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // Paddle::calibrate();
+  // p1._stepper->setTarget(1000);
+  // p2._stepper->setTarget(1000);
+}
 
-  // attachInterrupt(
-  //     digitalPinToInterrupt(23), []()
-  //     { ball.calibrationState[1] = true; },
-  //     LOW);
+void loop()
+{
+  clearSteps();
+  // if (Paddle::calibrated)
+  // {
+  //   p1._stepper->step();
+  //   p2._stepper->step();
+  // }
+  // // return;
 
-  // attachInterrupt(
-  //     digitalPinToInterrupt(24), []()
-  //     { ball.calibrationState[2] = true; },
-  //     LOW);
-  
-  // attachInterrupt(
-  //     digitalPinToInterrupt(25), []()
-  //     { ball.calibrationState[3] = true; },
-  //     LOW);
+  // if (!ball.needsToMove())
+  // {
+  //   if (ball.getPosition().x == 0)
+  //   {
+  //     digitalWrite(LED_BUILTIN, HIGH);
+  //     ball.setposition(200, 0, 50);
+  //   }
+  //   else if (ball.getPosition().x == 200)
+  //   {
+  //     digitalWrite(LED_BUILTIN, LOW);
+  //     ball.setposition(0, 0, 50);
+  //   }
+  // }
+  // return;
 
-  // ball.calibrate();
-  // Timer.getAvailable().attachInterrupt([](){
-  //   ball.run();
-  // }).start(10);
-
-  // ball.calibrate();
+  switch (ping.gameState)
+  {
+  case GameState::CALIBRATION:
+    ping.calibrate();
+    return;
+  case GameState::CENTER:
+    ping.center();
+    return;
+  case GameState::CENTER_PROGRESS:
+    ping.centerProgress();
+    return;
+  case GameState::MATCH_INIT:
+    ping.initMatch();
+    return;
+  case GameState::MATCH_INIT_PROGRESS:
+    ping.initMatchProgress();
+    return;
+  case GameState::MATCH_INIT_DONE:
+    ping.initMatchDone();
+    return;
+  case GameState::MATCH_SERVE:
+    ping.serveMatch();
+    return;
+  case GameState::SERVE_PROGRESS:
+    ping.serveProgress();
+    return;
+  case GameState::MATCH_RUN:
+    ping.runMatch();
+    return;
+  case GameState::BOUNCE_PROGRESS:
+    ping.bounceProgess();
+    return;
+  case GameState::MATCH_END:
+    ping.endMatch();
+    return;
+  default:
+    return;
+  }
 }
 
 // void loop()
@@ -115,24 +185,3 @@ void setup()
 
 //   ball.run();
 // }
-
-void loop()
-{
-  switch (ping.gameState)
-  {
-  case GameState::CALIBRATION:
-    ping.calibrate();
-    return;
-  case GameState::MATCH_INIT:
-    ping.initMatch();
-    return;
-  case GameState::MATCH_SERVE:
-    ping.serveMatch();
-    return;
-  case GameState::MATCH_RUN:
-    ping.runMatch();
-    return;
-  default:
-    return;
-  }
-}

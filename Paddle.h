@@ -1,18 +1,10 @@
+#pragma once
 #include <Arduino.h>
-#include <AccelStepper.h>
-#include "DirectionSmoother.h"
+#include "AxisStepper.h"
 
-enum Direction
-{
-    CW,
-    CCW,
-};
-
-enum CalibrationPosition
-{
-    MIN = 0,
-    MAX = 1
-};
+#define PADDLE_SENSITIVITY 8
+#define PADDLE_LIMIT 980
+#define PADDLE_CENTER 490
 
 using CallbackFunction = void (*)(int);
 
@@ -20,53 +12,63 @@ class Paddle
 {
 public:
     // variables
-    Direction direction = CW;
-    double speed = 0;
-    int limitMin = -1;
-    int limitMax = -1;
-    byte limitSwitchState[2] = {false,false};
-    unsigned int CALIBRATION_LIMITS[2] = {-10000,10000};
-    unsigned int max = 0;
+    byte id;
+    AxisStepper *_stepper = nullptr;
 
     // constructors
     Paddle();
 
     // methods
-    void initializeEncoder(byte A, byte B);
-    void initializeStepper(AccelStepper* stepper);
-    void initCalibration();
-    void runCalibration();
-    void run();
-    void isrA();
-    void isrB();
+    void initializeEncoder(int A, int B);
+    void initializeStepper(AxisStepper *stepper);
+    byte canShoot(long x);
+
     void stop();
     void center();
     void runCenter();
     long getPosition();
+    long getCenterRelativePosition();
     bool needsToMove();
+    void clearSingleStep();
+
+    static Paddle *instances[2];
+    static void attachPaddles();
+    static void detachPaddles();
+    static void isrReadEncoder0();
+    static void isrReadEncoder01();
+    static void isrReadEncoder10();
+    static void isrReadEncoder11();
+    static void calibrate();
+    static bool calibrated;
+    static void centerAll();
 
 private:
-    // variables
-    byte _pinA;
-    // RoReg _registerA;
-    // int _bitMaskA;
-    byte _pinB;
-    // RoReg _registerB;
-    // int _bitMaskB;
-    AccelStepper *_stepper = nullptr;
-    bool running = false;
-    DirectionSmoother smoother;
-
-    unsigned int _pulseCount = 0;
-    unsigned long _lastTime = 0;
-    unsigned long _currentTime = 0;
-    unsigned long _deltaTime = 0;
+    int _pinA;
+    int _pinB;
+    byte stepIndex = 0;
 
     // methods
-
+    void setDirection(StepDirection _direction);
+    void singleStep();
     int readA();
     int readB();
-    void calibratePosition(CalibrationPosition postion);
-};
 
-AccelStepper* initializeStepper(byte STEP, byte DIR);
+    // callbacks
+    typedef void (*DirectionCallback)(StepDirection);
+    typedef void (*StepCallback)();
+    DirectionCallback onDirectionChange = NULL;
+    StepCallback onStepChange = NULL;
+
+public:
+    void subscribe(DirectionCallback directionCallback, StepCallback stepCallback)
+    {
+        this->onDirectionChange = directionCallback;
+        this->onStepChange = stepCallback;
+    }
+
+    void unsubScribe()
+    {
+        this->onDirectionChange = NULL;
+        this->onStepChange = NULL;
+    }
+};

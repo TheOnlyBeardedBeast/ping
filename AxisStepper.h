@@ -1,41 +1,28 @@
+#pragma once
+
 #include <Arduino.h>
-#if defined(ARDUINO_SAM_DUE)
-    #include <DueTimer.h>
-#endif
-#if defined(ARDUINO_GIGA)
-    #include "Portenta_H7_TimerInterrupt.h"
-#endif
+#include "Models/Directable.h"
 
+class AxisStepper : public Directable
+{
+public:
+    byte id;
+    bool calibrated = false;
+    uint32_t nextStepAt;
 
-
-typedef void (*VoidCallback)();
-
-class AxisStepper {
-    public:
-
-    struct XYStepper {
-    int step_pin;
-    int dir_pin;
-    // TODO: store pin mask for step
-    // TODO: store pin mask for dir
+    struct XYStepper
+    {
+        int step_pin;
+        int dir_pin;
     };
 
-    enum StepDirection {
-        FORWARD = 1,
-        BACKWARD = -1,
-    };
+    void init(int step, int dir);
 
-    void setCallback(VoidCallback callback);
-    #if defined(ARDUINO_GIGA)
-    void setTimer(Portenta_H7_Timer *timer);
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-    void setTimer(DueTimer *timer);
-    #endif
-    void init(int step,int dir);
     void step();
-    void setPosition(long newDistance);
-    long getPosition() 
+    bool singleStep();
+
+    void setTarget(long newDistance);
+    long getPosition()
     {
         return this->position;
     };
@@ -44,15 +31,16 @@ class AxisStepper {
         this->position = newPosition;
     }
     // void setPosition(long x, long y, int speed);
-    bool isRunning();
+    bool needsMoving();
     void stop();
     void forceStop();
+    void setSpeed(long speed);
 
-    VoidCallback callback;
-    void startTimer(float period);
-
-
-    StepDirection direction = StepDirection::FORWARD;
+    volatile bool _isRunning;
+    bool isRunning()
+    {
+        return this->_isRunning;
+    }
 
     long position = 0;
     long speed = 0;
@@ -60,31 +48,21 @@ class AxisStepper {
     // long lastStepAt = 0;
 
     // Lieb ramp
-    long acceleration = 0;
     long distance = 0;
     long distanceRun = 0;
-    long accelDistance = 0;
-    long deccelDistance = 0;
-    float multiplier = 0;
     float delayPeriod = 0;
 
-    void resetRamping() {
-        this->acceleration = 0;
+    void resetRamping()
+    {
         this->distance = 0;
         this->distanceRun = 0;
-        this->accelDistance = 0;
-        this->deccelDistance = 0;
-        this->multiplier = 0;
         float delayPeriod = 0;
+        this->speed = 0;
     }
 
+    void clearStep();
 
-    // Timer
-    #if defined(ARDUINO_GIGA)
-        Portenta_H7_Timer *timer;
-    #endif
-    #if defined(ARDUINO_SAM_DUE)
-        DueTimer *timer;
-    #endif
-    
+    // inherited form directable
+    void setDirection(StepDirection dir);
+    virtual void clearDirection();
 };
