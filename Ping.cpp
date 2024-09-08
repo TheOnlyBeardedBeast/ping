@@ -158,6 +158,20 @@ void Ping::runMatch()
         }
 
         Paddle::detachPaddles();
+
+        score[this->shooter]++;
+
+        if (score[0] == 5 || score[1] == 5)
+        {
+            delay(5000);
+
+            score[0] = 0;
+            score[1] = 0;
+
+            this->shooter = Player::NOONE;
+            this->gameState = GameState::CENTER;
+        }
+
         this->shooter = nextShooter;
         this->gameState = GameState::MATCH_INIT;
         return;

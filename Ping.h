@@ -30,7 +30,7 @@ class Ping
 {
 public:
     GameState gameState = GameState::CALIBRATION;
-
+    int score[2] = {0, 0};
     void init(Ball *ball, Paddle *paddle1, Paddle *paddle2);
     void calibrate();
     void initMatch();
