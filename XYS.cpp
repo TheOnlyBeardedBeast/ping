@@ -10,9 +10,14 @@
 
 extern ClearTarget clearTimes[4];
 
-#define SPEED 1750
-#define ACCELERATION 10 * 4000
+#define SPEED 1800
+#define ACCELERATION 10000
+#define ACC2 20000
 #define TICKS 1000000
+#define START_SPEED 200
+#define END_SPEED 200
+
+#define TRAPEZOID 1
 
 #if defined(ARDUINO_GIGA)
 void XYS::setTimer(Portenta_H7_Timer *timer)
@@ -55,6 +60,7 @@ void XYS::init(int stepX, int dirX, int stepY, int dirY)
     XYS::instance = this;
 };
 
+#if TRAPEZOID == 0
 void XYS::step()
 {
     // int currentTime = micros();
@@ -64,6 +70,82 @@ void XYS::step()
     //     return;
     // }
 
+    if (!this->needsMoving())
+    {
+#if defined(ARDUINO_GIGA)
+        this->timer->stopTimer();
+#elif defined(ARDUINO_SAM_DUE)
+        this->timer->stop();
+#endif
+
+        // this->timer->detachInterrupt();
+
+        // this->clearStep();
+        // this->cleared = true;
+        this->resetBresenham();
+        this->resetRamping();
+        this->moving = false;
+
+        return;
+    }
+
+    // if (!this->cleared)
+    // {
+    //     this->clearStep();
+    //     this->cleared = !this->cleared;
+    //     return;
+    // }
+
+    // this->cleared = !this->cleared;
+
+    uint16_t stepMask = 0;
+
+    int e2 = this->err << 1;
+    if (e2 > -dy)
+    {
+        err -= dy;
+        this->x += sx;
+        stepMask |= stepperX.step_mask;
+    }
+    if (e2 < dx)
+    {
+        err += dx;
+        this->y += sy;
+        stepMask |= stepperY.step_mask;
+    }
+
+    digitalToggleMask(stepMask, this->port);
+    delayMicroseconds(3);
+    digitalToggleMask(stepMask, this->port);
+
+    this->distanceRun++;
+
+    float Q = this->multiplier * this->delayPeriod * this->delayPeriod;
+
+    if (this->distanceRun < this->accelDistance)
+    {
+        // this->delayPeriod = this->delayPeriod * (1-this->multiplier*this->delayPeriod*this->delayPeriod);
+        this->delayPeriod = this->delayPeriod * (1 - Q + Q * Q);
+    }
+    else if (this->distanceRun >= this->distance - this->deccelDistance)
+    {
+        // this->delayPeriod = this->delayPeriod * (1+this->multiplier*this->delayPeriod*this->delayPeriod);
+        this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
+    }
+
+#if defined(ARDUINO_GIGA)
+    this->timer->setInterval(this->delayPeriod, XYS::ballIsr);
+#elif defined(ARDUINO_SAM_DUE)
+    this->timer->setPeriod(this->delayPeriod).start();
+#endif
+
+    this->speed = TICKS / this->delayPeriod;
+};
+#endif
+
+#if TRAPEZOID == 1
+void XYS::step()
+{
     if (!this->needsMoving())
     {
 #if defined(ARDUINO_GIGA)
@@ -103,28 +185,34 @@ void XYS::step()
 
     this->distanceRun++;
 
-    float Q = this->multiplier * this->delayPeriod * this->delayPeriod;
-
     if (this->distanceRun < this->accelDistance)
     {
         // this->delayPeriod = this->delayPeriod * (1-this->multiplier*this->delayPeriod*this->delayPeriod);
-        this->delayPeriod = this->delayPeriod * (1 - Q + Q * Q);
+        this->speed = START_SPEED + sqrt(ACC2 * this->distanceRun + START_SPEED * START_SPEED);
     }
-    else if (this->distanceRun >= this->distance - this->deccelDistance)
+    else if (this->distanceRun > this->distance - this->deccelDistance)
     {
+        int decelStepIndex = this->distanceRun - (this->distance - this->deccelDistance);
         // this->delayPeriod = this->delayPeriod * (1+this->multiplier*this->delayPeriod*this->delayPeriod);
-        this->delayPeriod = this->delayPeriod * (1 + Q + Q * Q);
+        this->speed = END_SPEED + sqrt(this->targetSpeed * this->targetSpeed - ACC2 * decelStepIndex);
     }
+    else
+    {
+        this->speed = this->targetSpeed;
+    }
+
+    this->delayPeriod = TICKS / constrain(this->speed, min(START_SPEED, END_SPEED), this->targetSpeed);
 
 #if defined(ARDUINO_GIGA)
     this->timer->setInterval(this->delayPeriod - 3, XYS::ballIsr);
 #elif defined(ARDUINO_SAM_DUE)
     this->timer->setPeriod(this->delayPeriod - 3).start();
 #endif
-
-    this->speed = TICKS / this->delayPeriod;
 };
 
+#endif
+
+#if TRAPEZOID == 0
 void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
 {
     this->moving = true;
@@ -144,11 +232,12 @@ void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
     digitalWriteFast(this->stepperX.dir_pin, this->sx > 0 ? HIGH : LOW);
     digitalWriteFast(this->stepperY.dir_pin, this->sy > 0 ? HIGH : LOW);
 
-    // Leib ramp
+    // RAMPING
     this->distance = abs(this->dx >= this->dy ? this->dx : this->dy);
     this->distanceRun = 0;
     int halfDistance = this->distance >> 1;
 
+    // LEIB RAMP
     float acc2 = (float)(ACCELERATION << 1);
     float accDistance = (float)((moveSpeed * moveSpeed) / acc2);
     if (this->speed == 0)
@@ -169,7 +258,7 @@ void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
     else
     {
         int speedPow = this->speed * this->speed;
-        this->accelDistance = moveSpeed * moveSpeed - speedPow / ACCELERATION << 4;
+        this->accelDistance = moveSpeed * moveSpeed - speedPow / ACC2;
         this->deccelDistance = accDistance;
 
         if (this->deccelDistance + this->accelDistance >= this->distance)
@@ -193,6 +282,52 @@ void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
     this->delayPeriod = TICKS / this->speed;
     this->startTimer(this->delayPeriod);
 }
+#endif
+
+#if TRAPEZOID == 1
+void XYS::setPosition(long x, long y, int moveSpeed = SPEED)
+{
+    this->moving = true;
+    this->targetSpeed = (long)moveSpeed;
+    // this->targetX = x;
+    // this->targetY = y;
+
+    // Bresenham
+    this->dx = abs(x - this->x);
+    this->dy = abs(y - this->y);
+    this->sx = this->x < x ? 1 : -1;
+    this->sy = this->y < y ? 1 : -1;
+    this->err = this->dx - this->dy;
+    this->axis = this->dx < this->dy ? MainAxis::Y : MainAxis::X;
+
+    // DirectionSetup
+    // It is enough to setup the direction just here, because it wont change in the next steps
+    digitalWriteFast(this->stepperX.dir_pin, this->sx > 0 ? HIGH : LOW);
+    digitalWriteFast(this->stepperY.dir_pin, this->sy > 0 ? HIGH : LOW);
+
+    // RAMPING
+    this->distance = abs(this->dx >= this->dy ? this->dx : this->dy);
+    this->distanceRun = 0;
+    int halfDistance = this->distance >> 1;
+
+    // TRAPEZOIDAL RAMP
+    int maxSpeedPow = moveSpeed * moveSpeed;
+
+    this->accelDistance = (maxSpeedPow - START_SPEED * START_SPEED) / ACC2;
+    this->deccelDistance = (maxSpeedPow - END_SPEED * END_SPEED) / ACC2;
+    long totalAccelDecelSteps = this->accelDistance + this->deccelDistance;
+
+    if (this->distance < totalAccelDecelSteps)
+    {
+        this->accelDistance = this->distance * this->accelDistance / (this->accelDistance + this->deccelDistance);
+        this->deccelDistance = this->distance - this->accelDistance;
+    }
+
+    this->speed = START_SPEED; // sqrt(acc2*step+startSpeed*startSpeed);
+    this->delayPeriod = TICKS / this->speed;
+    this->startTimer(this->delayPeriod);
+}
+#endif
 
 void XYS::stop()
 {

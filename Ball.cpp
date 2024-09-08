@@ -80,7 +80,7 @@ void Ball::calibrate()
 
     this->_steppers->moveWhile(HIGH, HIGH, CALIBRATION_SPEED, leftLimitHit);
     delay(200);
-    this->setCurrentPosition(GAMEPLAY_AREA_X + 5, GAMEPLAY_AREA_Y);
+    this->setCurrentPosition(GAMEPLAY_AREA_X + 10, GAMEPLAY_AREA_Y + 15);
     this->limits.x = GAMEPLAY_AREA_X;
     this->limits.y = GAMEPLAY_AREA_Y; // 1step = 0.025cm // somehow 2280 works better maybe belt tension issue
     delay(200);

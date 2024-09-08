@@ -81,6 +81,7 @@ public:
     volatile long x = 0;
     volatile long y = 0;
     long speed = 0;
+    long targetSpeed = 0;
     XYStepper stepperX;
     XYStepper stepperY;
     // long lastStepAt = 0;
@@ -93,6 +94,7 @@ public:
     long deccelDistance = 0;
     float multiplier = 0;
     float delayPeriod = 0;
+    bool cleared = true;
 
     void resetRamping()
     {
@@ -104,6 +106,8 @@ public:
         this->multiplier = 0;
         this->delayPeriod = 0;
         this->speed = 0;
+        this->targetSpeed = 0;
+        this->cleared = true;
     }
 
     void printRamp()
