@@ -66,7 +66,7 @@ public:
     bool needsToMove();
 
     /// @brief angle the ball used last time
-    uint16_t lastAngle;
+    uint16_t lastAngle = 90;
 
     /// @brief Bounces onn the limits
     void bounce();

@@ -14,7 +14,7 @@
 // 5-----1.2192m/s - 2,440step/s
 // 6-----1.5875m/s - 3,175step/s
 
-#define SPEED 1750 // 0.875m/s
+#define SPEED 1750 // 0.875m/s 1750
 #define ACCELERATION 10 * SPEED
 #define CALIBRATION_SPEED 250
 #define SAFEZONE_WIDTH 10

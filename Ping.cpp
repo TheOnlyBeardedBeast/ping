@@ -24,7 +24,7 @@ void Ping::center()
     Paddle::instances[0]->_stepper->setTarget(PADDLE_CENTER);
     Paddle::instances[1]->_stepper->setTarget(PADDLE_CENTER);
 
-    this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y >> 1);
+    this->ball->setposition(this->ball->limits.x >> 1, this->ball->limits.y >> 1, 500);
 
     this->gameState = GameState::CENTER_PROGRESS;
 }
@@ -59,11 +59,11 @@ void Ping::initMatch()
 
     if (this->shooter == Player::Player1)
     {
-        this->ball->setposition(this->ball->limits.x, (this->ball->limits.y >> 1) + paddles[this->shooter]->getCenterRelativePosition());
+        this->ball->setposition(this->ball->limits.x, (this->ball->limits.y >> 1) + paddles[this->shooter]->getCenterRelativePosition(), 500);
     }
     else
     {
-        this->ball->setposition(0, (this->ball->limits.y >> 1) + paddles[this->shooter]->getCenterRelativePosition());
+        this->ball->setposition(0, (this->ball->limits.y >> 1) + paddles[this->shooter]->getCenterRelativePosition(), 500);
     }
 
     this->gameState = GameState::MATCH_INIT_PROGRESS;

@@ -10,14 +10,15 @@
 
 extern ClearTarget clearTimes[4];
 
-#define SPEED 1800
-#define ACCELERATION 10000
-#define ACC2 20000
+#define SPEED 1750
+#define ACCELERATION 20000
+#define ACC2 40000
 #define TICKS 1000000
 #define START_SPEED 200
 #define END_SPEED 200
 
-#define TRAPEZOID 1
+// TODO: trapezoid has issues with short distances
+#define TRAPEZOID 0
 
 #if defined(ARDUINO_GIGA)
 void XYS::setTimer(Portenta_H7_Timer *timer)
