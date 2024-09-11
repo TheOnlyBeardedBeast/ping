@@ -306,7 +306,7 @@ byte Paddle::canShoot(long ballPos)
         double relativePosition = (ballPos - paddlePos);
 
         // Map the relative position to an angle between 30 and 150 degrees
-        return round(map(relativePosition, -hitzone, hitzone, 6, 30)) * 5;
+        return round(map(relativePosition, -hitzone, hitzone, MIN_ANGLE_MUL, MAX_ANGLE_MUL)) * 5;
     }
     else
     {

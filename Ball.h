@@ -39,6 +39,8 @@ public:
     /// @param speed
     void setposition(int x, int y, int speed);
 
+    void setposition(int x, int y, int speed, int startSpeed, int endSpeed);
+
     /// @brief Starts the stopping process
     /// @attention Doesnt stop the stepper immediatelly
     void stop();
@@ -66,7 +68,7 @@ public:
     bool needsToMove();
 
     /// @brief angle the ball used last time
-    uint16_t lastAngle = 90;
+    uint16_t lastAngle = 0;
 
     /// @brief Bounces onn the limits
     void bounce();

@@ -14,11 +14,18 @@
 // 5-----1.2192m/s - 2,440step/s
 // 6-----1.5875m/s - 3,175step/s
 
-#define SPEED 1750 // 0.875m/s 1750
+#define SPEED 3175 // 0.875m/s 1750
 #define ACCELERATION 10 * SPEED
 #define CALIBRATION_SPEED 250
 #define SAFEZONE_WIDTH 10
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)
 #define CALIBRATION_LENGTH 100000
+#define START_SPEED 500
+#define END_SPEED 500
+
+#define MIN_ANGLE_MUL 9
+#define MIN_ANGLE 45
+#define MAX_ANGLE 135
+#define MAX_ANGLE_MUL 27
 /// 0 for trigonometry 1 for Bresenham
 #define LINE 0

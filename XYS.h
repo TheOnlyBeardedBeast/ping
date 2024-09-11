@@ -48,7 +48,7 @@ public:
 
     void init(int stepX, int dirX, int stepY, int dirY);
     void step();
-    void setPosition(long x, long y, int moveSpeed);
+    void setPosition(long x, long y, int moveSpeed, int startSpeed, int endSpeed);
     long getX()
     {
         return this->x;
@@ -86,6 +86,9 @@ public:
     XYStepper stepperY;
     // long lastStepAt = 0;
 
+    // Reamp
+    long startSpeed = 0;
+    long endSpeed = 0;
     // Lieb ramp
     long acceleration = 0;
     long distance = 0;

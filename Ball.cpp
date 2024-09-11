@@ -31,7 +31,15 @@ void Ball::setposition(int x, int y, int speed)
     int a = x + y;
     int b = x - y;
 
-    this->_steppers->setPosition(a, b, speed);
+    this->_steppers->setPosition(a, b, speed, START_SPEED, END_SPEED);
+}
+
+void Ball::setposition(int x, int y, int speed, int startSpeed, int endSpeed)
+{
+    int a = x + y;
+    int b = x - y;
+
+    this->_steppers->setPosition(a, b, speed, startSpeed, endSpeed);
 }
 
 void Ball::stop()
@@ -155,7 +163,11 @@ void Ball::shootAngle(float angleRadians)
     int newX = constrain(ballPos.x + round(dx * t), 0, this->limits.x);
     int newY = constrain(ballPos.y + round(dy * t), 0, this->limits.y);
 
-    this->setposition(newX, newY);
+    float modifier = abs(sin(angleRadians) - 0.70710678118);
+    int startSpeed = ballPos.x == 0 || ballPos.x == this->limits.x ? START_SPEED : START_SPEED + (int)(START_SPEED * modifier);
+    int endSpeed = newX == 0 || newX == this->limits.x ? END_SPEED : END_SPEED + (int)(END_SPEED * modifier);
+
+    this->setposition(newX, newY, mapAngleToSpeed(this->lastAngle), startSpeed, endSpeed);
 }
 
 uint16_t Ball::inverseAngle(int16_t angle)
