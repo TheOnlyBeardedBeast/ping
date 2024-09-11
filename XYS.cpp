@@ -10,8 +10,8 @@
 
 extern ClearTarget clearTimes[4];
 
-#define ACCELERATION 20000
-#define ACC2 40000
+#define ACCELERATION 30000
+#define ACC2 60000
 #define TICKS 1000000
 
 // TODO: trapezoid has issues with short distances
@@ -167,9 +167,16 @@ void XYS::step()
 #endif
 
         // this->timer->detachInterrupt();
-
         this->resetBresenham();
         this->resetRamping();
+
+        if (this->nexTarget.needsRun)
+        {
+            this->setPosition(this->nexTarget.x, this->nexTarget.y, this->endSpeed + 200, this->startSpeed, this->endSpeed);
+            this->nexTarget.needsRun = false;
+            return;
+        }
+
         this->moving = false;
 
         return;
@@ -201,21 +208,17 @@ void XYS::step()
     {
         // this->delayPeriod = this->delayPeriod * (1-this->multiplier*this->delayPeriod*this->delayPeriod);
         this->speed = max(sqrt(ACC2 + this->speed * this->speed), this->startSpeed);
-        if (this->distanceRun == this->accelDistance - 1 &&
-            this->accelDistance + this->deccelDistance >= this->distance)
-        {
-            this->targetSpeed = this->speed;
-        }
+        // if (this->distanceRun == this->accelDistance &&
+        //     (this->accelDistance + this->deccelDistance) == this->distance)
+        // {
+        //     this->targetSpeed = this->speed;
+        // }
     }
     else if (this->distanceRun > this->distance - this->deccelDistance)
     {
         int decelStepIndex = this->distanceRun - (this->distance - this->deccelDistance);
         // this->delayPeriod = this->delayPeriod * (1+this->multiplier*this->delayPeriod*this->delayPeriod);
-        this->speed = max(sqrt(this->targetSpeed * this->targetSpeed - ACC2 * decelStepIndex), this->endSpeed);
-    }
-    else
-    {
-        this->speed = this->targetSpeed;
+        this->speed = max(sqrt(this->speed * this->speed - ACC2), this->endSpeed);
     }
 
     this->delayPeriod = TICKS / constrain(this->speed, min(this->startSpeed, this->endSpeed), this->targetSpeed);
@@ -336,7 +339,7 @@ void XYS::setPosition(long x, long y, int moveSpeed, int startSpeed, int endSpee
     this->deccelDistance = (maxSpeedPow - this->endSpeed * this->endSpeed) / ACC2;
     long totalAccelDecelSteps = this->accelDistance + this->deccelDistance;
 
-    if (this->distance < totalAccelDecelSteps)
+    if (this->distance < totalAccelDecelSteps && this->accelDistance != 0 && this->deccelDistance != 0)
     {
         this->accelDistance = this->distance * this->accelDistance / (this->accelDistance + this->deccelDistance);
         this->deccelDistance = this->distance - this->accelDistance;

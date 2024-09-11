@@ -27,6 +27,7 @@ public:
     /// @param x
     /// @param y
     void setposition(int x, int y);
+    void setNextTarget(int x, int y);
 
     /// @brief Overrides the current position tracked by the stepper
     /// @param x

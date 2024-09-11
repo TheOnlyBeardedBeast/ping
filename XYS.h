@@ -10,6 +10,13 @@
 #include "helpers.h"
 #include "DueWriteFast.h"
 
+struct Target
+{
+    int x = 0;
+    int y = 0;
+    bool needsRun = false;
+};
+
 struct XYStepper
 {
     int step_pin;
@@ -167,6 +174,14 @@ public:
     void singleStep();
     void clearStep();
     void clearDirection() {};
+
+    Target nexTarget;
+    void setNextTarget(int _x, int _y)
+    {
+        nexTarget.x = _x;
+        nexTarget.y = _y;
+        nexTarget.needsRun = true;
+    }
 
 // Timer
 #if defined(ARDUINO_GIGA)

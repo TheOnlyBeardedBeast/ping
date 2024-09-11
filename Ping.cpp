@@ -175,7 +175,7 @@ void Ping::runMatch()
     }
 
     // BOUNCE
-    if ((ballLimits.y == ballPosition.y || 0 == ballPosition.y) && ballPosition.x != 0 && ballPosition.x != ballLimits.x)
+    if ((ballLimits.y == ballPosition.y || 0 == ballPosition.y) && ballPosition.x != 0 && ballPosition.x != ballLimits.x && !Ball::instance->needsToMove())
     {
         ball->bounce();
         this->gameState = GameState::BOUNCE_PROGRESS;

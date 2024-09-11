@@ -18,6 +18,14 @@ void Ball::setposition(int x, int y)
     this->setposition(x, y, mapAngleToSpeed(this->lastAngle));
 }
 
+void Ball::setNextTarget(int x, int y)
+{
+    int a = x + y;
+    int b = x - y;
+
+    this->_steppers->setNextTarget(a, b);
+}
+
 void Ball::setCurrentPosition(int x, int y)
 {
     int a = x + y;
@@ -163,11 +171,24 @@ void Ball::shootAngle(float angleRadians)
     int newX = constrain(ballPos.x + round(dx * t), 0, this->limits.x);
     int newY = constrain(ballPos.y + round(dy * t), 0, this->limits.y);
 
-    float modifier = abs(sin(angleRadians) - 0.70710678118);
-    int startSpeed = ballPos.x == 0 || ballPos.x == this->limits.x ? START_SPEED : START_SPEED + (int)(START_SPEED * modifier);
-    int endSpeed = newX == 0 || newX == this->limits.x ? END_SPEED : END_SPEED + (int)(END_SPEED * modifier);
+    // speed modification
+    float modifier = abs(sin(angleRadians) - 0.70710678118) * 2;
+    int _startSpeed = ballPos.x == 0 || ballPos.x == this->limits.x ? START_SPEED : START_SPEED + (int)(START_SPEED * modifier);
+    int _endSpeed = newX == 0 || newX == this->limits.x ? END_SPEED : END_SPEED + (int)(END_SPEED * modifier);
 
-    this->setposition(newX, newY, mapAngleToSpeed(this->lastAngle), startSpeed, endSpeed);
+    this->setposition(newX, newY, mapAngleToSpeed(this->lastAngle), _startSpeed, _endSpeed);
+    if (newX != 0 && newX != this->limits.x)
+    {
+        // will bounce
+        if (this->lastAngle < 180)
+        {
+            this->setNextTarget(min(newX + 50, this->limits.x), newY);
+        }
+        else
+        {
+            this->setNextTarget(max(newX - 50, 0), newY);
+        }
+    }
 }
 
 uint16_t Ball::inverseAngle(int16_t angle)
