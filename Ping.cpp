@@ -164,6 +164,10 @@ void Ping::runMatch()
             score[0] = 0;
             score[1] = 0;
 
+            Paddle::detachPaddles();
+            Paddle::instances[0]->unsubScribe();
+            Paddle::instances[1]->unsubScribe();
+
             this->shooter = Player::NOONE;
             this->gameState = GameState::CENTER;
             return;

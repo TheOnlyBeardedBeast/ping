@@ -15,7 +15,8 @@
 // 6-----1.5875m/s - 3,175step/s
 
 #define SPEED 1750 // 0.875m/s 1750
-#define ACCELERATION 20000
+#define ACCELERATION 25000
+#define ACC2 50000
 #define CALIBRATION_SPEED 250
 #define SAFEZONE_WIDTH 10
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)

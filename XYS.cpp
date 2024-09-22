@@ -5,13 +5,12 @@
 #include "DueWriteFast.h"
 #endif
 #include "helpers.h"
+#include "utils.h"
 
 #include "ClearTarget.h"
 
 extern ClearTarget clearTimes[4];
 
-#define ACCELERATION 30000
-#define ACC2 60000
 #define TICKS 1000000
 
 // TODO: trapezoid has issues with short distances

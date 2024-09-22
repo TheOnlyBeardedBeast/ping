@@ -177,18 +177,18 @@ void Ball::shootAngle(float angleRadians)
     int _endSpeed = newX == 0 || newX == this->limits.x ? END_SPEED : END_SPEED + (int)(END_SPEED * modifier);
 
     this->setposition(newX, newY, mapAngleToSpeed(this->lastAngle), _startSpeed, _endSpeed);
-    if (newX != 0 && newX != this->limits.x)
-    {
-        // will bounce
-        if (this->lastAngle < 180)
-        {
-            this->setNextTarget(min(newX + 50, this->limits.x), newY);
-        }
-        else
-        {
-            this->setNextTarget(max(newX - 50, 0), newY);
-        }
-    }
+    // if (newX != 0 && newX != this->limits.x)
+    // {
+    //     // will bounce
+    //     if (this->lastAngle < 180)
+    //     {
+    //         this->setNextTarget(min(newX + 50, this->limits.x), newY);
+    //     }
+    //     else
+    //     {
+    //         this->setNextTarget(max(newX - 50, 0), newY);
+    //     }
+    // }
 }
 
 uint16_t Ball::inverseAngle(int16_t angle)

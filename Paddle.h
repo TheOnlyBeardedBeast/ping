@@ -46,6 +46,7 @@ private:
     int _pinA;
     int _pinB;
     byte stepIndex = 0;
+    bool isStopping = false;
 
     // methods
     void setDirection(StepDirection _direction);
