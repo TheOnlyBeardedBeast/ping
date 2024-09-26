@@ -13,7 +13,7 @@
 // 4-----1.0389m/s - 2,078step/s
 // 5-----1.2192m/s - 2,440step/s
 // 6-----1.5875m/s - 3,175step/s
-
+#define TICKS 1'000'000
 #define SPEED 1750 // 0.875m/s 1750
 #define ACCELERATION 25000
 #define ACC2 50000
@@ -22,6 +22,7 @@
 #define SERVE_PIN(player) (player == 0 ? 42 : 43)
 #define CALIBRATION_LENGTH 100000
 #define START_SPEED 400
+#define START_SPEED_PW 160000
 #define END_SPEED 400
 
 #define MIN_ANGLE_MUL 9
