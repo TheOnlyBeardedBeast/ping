@@ -10,6 +10,26 @@ void PongStepper::init(size_t _step_pin, size_t _dir_pin, size_t _timerId)
     this->timerId = _timerId;
 }
 
+void PongStepper::setPulseWidth(byte width)
+{
+    this->pulseWidth = width;
+}
+
+uint32_t PongStepper::getSpeed()
+{
+    return this->speed;
+}
+
+uint32_t PongStepper::getTargetSpeed()
+{
+    return this->targetSpeed;
+}
+
+uint32_t PongStepper::getAcceleration()
+{
+    return this->acc;
+}
+
 void PongStepper::setAcceleration(uint32_t _acceleration)
 {
     this->acc = _acceleration;
@@ -39,6 +59,38 @@ void PongStepper::setPosition(uint16_t _position)
     this->position = _position;
 }
 
+void PongStepper::setDirection(StepDirection dir)
+{
+    if (this->dir != dir)
+    {
+        this->dir = dir;
+        digitalWriteFast(this->dir_pin, dirToPin(this->dir));
+    }
+
+    if (this->onDirectionChange != NULL)
+    {
+        this->onDirectionChange(dir);
+    }
+}
+
+void PongStepper::_step()
+{
+
+    this->stepSingle();
+    this->distanceRun++;
+
+    if (this->distanceRun < this->accSteps)
+    {
+        this->speed = calculateAccelerationSpeed(this->speed * this->speed, START_SPEED, this->acc_2);
+        this->delayPeriod = TICKS / this->speed;
+    }
+    else if (this->distanceRun > this->distance - this->deccSteps)
+    {
+        this->speed = calculateDeccelerationSpeed(this->speed * this->speed, START_SPEED, this->acc_2);
+        this->delayPeriod = TICKS / this->speed;
+    }
+}
+
 void PongStepper::step()
 {
     if (!this->isRunning() || this->dir == StepDirection::NONE)
@@ -51,24 +103,36 @@ void PongStepper::step()
         return;
     }
 
-    digitalWriteFast(this->dir_pin, dirToPin(this->dir));
-    this->position += this->dir;
-
-    if (this->distanceRun < this->accSteps)
-    {
-        this->speed = calculateAccelerationSpeed(this->speed * this->speed, START_SPEED, this->acc_2);
-        this->delayPeriod = TICKS / this->speed;
-    }
-    else if (this->distanceRun > this->distance - this->deccSteps)
-    {
-        this->speed = calculateDeccelerationSpeed(this->speed * this->speed, START_SPEED, this->acc_2);
-        this->delayPeriod = TICKS / this->speed;
-    }
+    this->step();
 
     // change timer here
 }
 
-void PongStepper::stepTo(uint16_t _position)
+void PongStepper::stepSync()
+{
+    uint32_t now = micros();
+
+    if (!this->isMoving() ||
+        (this->isRunning() && now > this->nextStepAt))
+    {
+        return;
+    }
+
+    if (!this->isRunning() || this->dir == StepDirection::NONE)
+    {
+        this->_isMoving = false;
+        this->distanceRun = 0;
+        this->distance = 0;
+        this->nextStepAt = 0;
+
+        return;
+    }
+
+    this->_step();
+    this->nextStepAt = now + this->delayPeriod;
+}
+
+void PongStepper::_stepTo(uint16_t _position)
 {
     if (this->isStopping())
     {
@@ -88,10 +152,11 @@ void PongStepper::stepTo(uint16_t _position)
         this->stop();
     }
 
+    this->dir = targetDirection;
     this->distanceRun = 0;
     this->_isMoving = true;
 
-    digitalWriteFast(this->dir_pin, this->diff > 0 ? HIGH : LOW);
+    digitalWriteFast(this->dir_pin, dirToPin(targetDirection));
 
     this->distance = abs(diff);
     uint16_t halfDistance = this->distance >> 1;
@@ -110,10 +175,65 @@ void PongStepper::stepTo(uint16_t _position)
     this->delayPeriod = TICKS / this->speed;
 }
 
+void PongStepper::_stepTo(uint16_t _position, uint32_t _speed)
+{
+    this->setTargetSpeed(_speed);
+    this->_stepTo(_position);
+}
+
 void PongStepper::stepTo(uint16_t _position, uint32_t _speed)
 {
     this->setTargetSpeed(_speed);
-    this->setPosition(_position);
+    this->stepTo(_position);
+}
+
+void PongStepper::stepToSync(uint16_t _position, uint32_t _speed)
+{
+    this->setTargetSpeed(_speed);
+    this->stepToSync(_position);
+}
+
+void PongStepper::stepTo(uint16_t _position)
+{
+    this->_stepTo(_position);
+    // start timer
+}
+
+void PongStepper::stepToSync(uint16_t _position)
+{
+    this->_stepTo(_position);
+    this->nextStepAt = micros() + this->delayPeriod;
+}
+
+void PongStepper::stop()
+{
+    if (!this->isRunning() || this->isStopping())
+    {
+        return;
+    }
+
+    this->distance = this->distanceRun + calculateRampSteps(this->speed * this->speed, START_SPEED_PW, this->acc_2);
+}
+
+void PongStepper::stepSingle()
+{
+    digitalWriteFast(this->step_pin, HIGH);
+    this->position += this->dir;
+
+    if (this->onStepChange != NULL)
+    {
+        this->onStepChange();
+    }
+}
+
+void PongStepper::stepSingleSync()
+{
+    digitalWriteFast(this->step_pin, HIGH);
+    this->position += this->dir;
+
+    delayMicroseconds(this->pulseWidth);
+
+    clearStep();
 }
 
 bool PongStepper::isRunning()
@@ -129,4 +249,9 @@ bool PongStepper::isMoving()
 bool PongStepper::isStopping()
 {
     return this->isStopping;
+}
+
+void PongStepper::clearStep()
+{
+    digitalWriteFast(this->step_pin, LOW);
 }
