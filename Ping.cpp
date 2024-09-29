@@ -21,6 +21,7 @@ void Ping::calibrate()
 
 void Ping::center()
 {
+    score.resetScore();
     Paddle::instances[0]->_stepper->setTarget(PADDLE_CENTER);
     Paddle::instances[1]->_stepper->setTarget(PADDLE_CENTER);
 
@@ -157,18 +158,20 @@ void Ping::runMatch()
             return;
         }
 
-        score[this->shooter]++;
+        score.incrementScore(this->shooter);
 
-        if (score[0] == 5 || score[1] == 5)
+        Paddle::detachPaddles();
+        Paddle::instances[0]->unsubScribe();
+        Paddle::instances[1]->unsubScribe();
+
+        if (score.checkForWinner())
         {
-            score[0] = 0;
-            score[1] = 0;
+            delay(2000);
 
-            Paddle::detachPaddles();
-            Paddle::instances[0]->unsubScribe();
-            Paddle::instances[1]->unsubScribe();
+            score.resetScore();
 
             this->shooter = Player::NOONE;
+            this->lastWinner = Player::NOONE;
             this->gameState = GameState::CENTER;
             return;
         }

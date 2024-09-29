@@ -1,5 +1,6 @@
 #include "Paddle.h"
 #include "Ball.h"
+#include "ScoreBoard/ScoreBoard.h"
 
 enum Player
 {
@@ -30,7 +31,6 @@ class Ping
 {
 public:
     GameState gameState = GameState::CALIBRATION;
-    int score[2] = {0, 0};
     void init(Ball *ball, Paddle *paddle1, Paddle *paddle2);
     void calibrate();
     void initMatch();
@@ -49,4 +49,5 @@ private:
     Ball *ball = nullptr;
     Player lastWinner = Player::NOONE;
     Player shooter = Player::NOONE;
+    ScoreBoard score;
 };

@@ -124,6 +124,7 @@ void PongStepper::stepSync()
         this->distanceRun = 0;
         this->distance = 0;
         this->nextStepAt = 0;
+        this->speed = 0;
 
         return;
     }
@@ -150,6 +151,7 @@ void PongStepper::_stepTo(uint16_t _position)
     if (this->isRunning() && this->dir != targetDirection)
     {
         this->stop();
+        return;
     }
 
     this->dir = targetDirection;
